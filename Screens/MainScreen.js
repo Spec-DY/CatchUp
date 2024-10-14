@@ -6,9 +6,17 @@ const MainScreen = () => {
 
   const {user} = useUser();
 
+  if (!user) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
-      <Text>Example Main Screen, You've logged in as {user.email}</Text>
+      <Text>Example Main Screen, You've logged in{user.email}</Text>
     </View>
   );
 };

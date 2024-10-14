@@ -39,7 +39,6 @@ const LoginScreen = () => {
       .then((userCredential) => {
         const user = userCredential.user;
         Alert.alert('Registration Successful', `Welcome, ${user.email}`);
-        console.log("Registered ",user.email)
       })
       .catch(error => Alert.alert('Registration Error', error.message))
       .finally(() => setLoading(false));

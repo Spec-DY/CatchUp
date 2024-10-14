@@ -5,11 +5,6 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   
-  if(user){
-    console.log(user.email,"logged in")
-  }
-
-
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {children}
