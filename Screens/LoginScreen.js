@@ -23,9 +23,10 @@ const LoginScreen = () => {
     setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
-        navigation.navigate('MainScreen')
         const user = userCredential.user;
         setUser(user)
+        navigation.replace('Tabs');
+        console.log(`user logged in ${user.email}`)
       })
       .catch(error => Alert.alert('Login Error', error.message))
       .finally(() => setLoading(false));
@@ -39,6 +40,7 @@ const LoginScreen = () => {
       .then((userCredential) => {
         const user = userCredential.user;
         Alert.alert('Registration Successful', `Welcome, ${user.email}`);
+        console.log(`user registered ${user.email}`)
       })
       .catch(error => Alert.alert('Registration Error', error.message))
       .finally(() => setLoading(false));
