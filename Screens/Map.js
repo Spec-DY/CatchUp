@@ -4,7 +4,7 @@ import { useUser } from '../Context/UserContext';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
-const MainScreen = () => {
+const Map = () => {
   const { user } = useUser();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -80,4 +80,4 @@ const MainScreen = () => {
   );
 };
 
-export default MainScreen;
+export default Map;

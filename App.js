@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './Screens/LoginScreen';
-import MainScreen from './Screens/Map';
 import { UserProvider } from './Context/UserContext';
 import BottomTabNavigator from './Navigation/BottomTabNavigator';
 
