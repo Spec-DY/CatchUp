@@ -1,10 +1,9 @@
-//DO NOT change firebase to @react-native-firebase, it won't work if we want to use expo
+//DO NOT change firebase to @react-native-firebase if we want to use expo
 import { initializeApp } from "firebase/app";
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // This is copied from firebase settings
-// 项目设置->常规，下拉后有个web应用
 const firebaseConfig = {
 
   apiKey: "AIzaSyDjppgF_Q8SgrySNKuJTSQITFn2uVL7LuQ",
