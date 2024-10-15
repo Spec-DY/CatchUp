@@ -47,15 +47,15 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Login or Register</Text>
+    <View className="flex-1 bg-white">
+      <Text className="text-xl m-2 font-bold">Login or Register</Text>
       <TextInput
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
+        className="border rounded border-gray-400 p-2 m-2"
       />
       <TextInput
         placeholder="Password"
@@ -63,7 +63,7 @@ const LoginScreen = () => {
         onChangeText={setPassword}
         secureTextEntry
         autoCapitalize="none"
-        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
+        className="border rounded border-gray-400 p-2 m-2"
       />
       <Button title="Login" onPress={handleLogin} disabled={loading} />
       <View style={{margin:10}}></View>
