@@ -8,12 +8,13 @@ const COLORS = {
   dark: "#374151",
 };
 
-const GenderOption = ({ type, icon, selected, onSelect }) => {
+const GenderOption = ({ type, icon, selected, onSelect, disabled = false }) => {
   return (
     <TouchableOpacity
       onPress={() => onSelect(type)}
       style={styles.container(selected)}
       activeOpacity={0.7}
+      disabled={disabled}
     >
       <View style={styles.innerCircle}>
         {typeof icon === "string" ? (
