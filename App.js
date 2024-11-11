@@ -43,7 +43,7 @@ const NavigationContent = () => {
           name="ProfileSetup"
           component={ProfileSetup}
           options={{
-            title: "Setup Profile",
+            headerShown: false,
             headerLeft: () => null,
             gestureEnabled: false,
           }}

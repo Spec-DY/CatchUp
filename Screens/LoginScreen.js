@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, Alert } from "react-native";
+import { View, Text, Alert, TouchableOpacity } from "react-native";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { FIREBASE_AUTH } from "../firebase/firebaseConfig";
 import { useNavigation } from "@react-navigation/native";
@@ -64,7 +65,6 @@ const LoginScreen = () => {
         password
       );
       setUser(userCredential.user);
-      // Navigate to profile setup
       navigation.navigate("ProfileSetup");
     } catch (error) {
       Alert.alert("Registration Error", error.message);
@@ -73,9 +73,31 @@ const LoginScreen = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert("Error", "Please enter your email address");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert(
+        "Password Reset",
+        "Password reset email has been sent. Please check your inbox."
+      );
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
+
   return (
-    <View className="flex-1 justify-center bg-white p-4">
-      <Text className="text-2xl font-bold mb-8 text-center">Welcome</Text>
+    <View className="flex-1 justify-center bg-black p-4">
+      <View className="mb-12">
+        <Text className="text-3xl font-bold mb-2 text-white text-center">
+          Welcome Back
+        </Text>
+        <Text className="text-gray-400 text-center">Sign in to continue</Text>
+      </View>
 
       <View className="space-y-4">
         <Input
@@ -84,7 +106,16 @@ const LoginScreen = () => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
-          leftIcon={{ type: "font-awesome", name: "envelope", size: 16 }}
+          leftIcon={{
+            type: "font-awesome",
+            name: "envelope",
+            size: 16,
+            color: "gray",
+          }}
+          inputStyle={{ color: "white" }}
+          placeholderTextColor="gray"
+          containerStyle={{ paddingHorizontal: 0 }}
+          inputContainerStyle={styles.inputContainerStyle}
         />
 
         <Input
@@ -93,44 +124,87 @@ const LoginScreen = () => {
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
-          // not font-awesome icon
-          leftIcon={{ type: "ionicon", name: "lock-closed", size: 16 }}
+          leftIcon={{
+            type: "ionicon",
+            name: "lock-closed",
+            size: 16,
+            color: "gray",
+          }}
+          inputStyle={{ color: "white" }}
+          placeholderTextColor="gray"
+          containerStyle={{ paddingHorizontal: 0 }}
+          inputContainerStyle={styles.inputContainerStyle}
         />
+
+        {/* Forgot Password Link */}
+        <TouchableOpacity
+          onPress={handleForgotPassword}
+          className="items-end mb-4"
+        >
+          <Text className="text-blue-400">Forgot Password?</Text>
+        </TouchableOpacity>
       </View>
 
-      <View className="flex-row justify-center space-x-4 mt-6">
+      {/* Auth Buttons */}
+      <View className="space-y-4 mt-6">
         <Button
-          title="LOG IN"
+          title={loading ? "Please wait..." : "LOG IN"}
           buttonStyle={{
-            backgroundColor: "black",
+            backgroundColor: "blue",
             borderRadius: 30,
-            paddingHorizontal: 30,
+            paddingVertical: 12,
           }}
           containerStyle={{
-            width: 140,
+            width: "100%",
           }}
-          titleStyle={{ fontWeight: "bold" }}
+          titleStyle={{
+            fontWeight: "bold",
+            fontSize: 16,
+          }}
           onPress={handleLogin}
           loading={loading}
+          disabled={loading}
         />
 
         <Button
           title="SIGN UP"
           buttonStyle={{
-            backgroundColor: "black",
+            backgroundColor: "transparent",
             borderRadius: 30,
-            paddingHorizontal: 30,
+            paddingVertical: 12,
+            borderWidth: 1,
+            borderColor: "white",
           }}
           containerStyle={{
-            width: 140,
+            width: "100%",
           }}
-          titleStyle={{ fontWeight: "bold" }}
+          titleStyle={{
+            fontWeight: "bold",
+            fontSize: 16,
+            color: "white",
+          }}
           onPress={handleRegister}
           disabled={loading}
         />
       </View>
+
+      {/* Terms and Privacy */}
+      <Text className="text-gray-500 text-center mt-8 text-sm">
+        By continuing, you agree to our{" "}
+        <Text className="text-blue-400">Terms of Service</Text> and{" "}
+        <Text className="text-blue-400">Privacy Policy</Text>
+      </Text>
     </View>
   );
+};
+
+styles = {
+  inputContainerStyle: {
+    borderRadius: 8,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderBottomWidth: 0,
+    paddingHorizontal: 10,
+  },
 };
 
 export default LoginScreen;
