@@ -1,4 +1,3 @@
-// LoginScreen.js
 import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import {
@@ -32,9 +31,17 @@ const LoginScreen = () => {
         email,
         password
       );
-      const user = userCredential.user;
-      setUser(user);
-      navigation.replace("Tabs");
+      const userProfile = await userService.getUserProfile(
+        userCredential.user.uid
+      );
+
+      if (userProfile) {
+        setUser({ ...userCredential.user, ...userProfile });
+        navigation.replace("Tabs");
+      } else {
+        setUser(userCredential.user);
+        navigation.navigate("ProfileSetup");
+      }
     } catch (error) {
       Alert.alert("Login Error", error.message);
     } finally {
@@ -55,8 +62,7 @@ const LoginScreen = () => {
         email,
         password
       );
-      const user = userCredential.user;
-      setUser(user);
+      setUser(userCredential.user);
       // Navigate to profile setup
       navigation.navigate("ProfileSetup");
     } catch (error) {
