@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { FIREBASE_AUTH } from "../firebaseConfig";
+import { FIREBASE_AUTH } from "../firebase/firebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
