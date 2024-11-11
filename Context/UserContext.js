@@ -8,13 +8,12 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 监听 Firebase Auth 状态
+  // monitor user authentication state
   useEffect(() => {
     const unsubscribe = FIREBASE_AUTH.onAuthStateChanged(
       async (firebaseUser) => {
         try {
           if (firebaseUser) {
-            // 如果已登录，获取用户的完整信息
             const userProfile = await userService.getUserProfile(
               firebaseUser.uid
             );
@@ -35,7 +34,7 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  // 登出
+  // sign out user
   const signOut = async () => {
     try {
       await FIREBASE_AUTH.signOut();

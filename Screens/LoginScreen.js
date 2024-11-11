@@ -9,6 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
 import { Input } from "@rneui/themed";
+import { userService } from "../firebase/services/userService";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
