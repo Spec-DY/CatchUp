@@ -6,6 +6,7 @@ import LoginScreen from "./Screens/LoginScreen";
 import ProfileSetup from "./Screens/ProfileSetup";
 import { UserProvider, useUser } from "./Context/UserContext";
 import BottomTabNavigator from "./Navigation/BottomTabNavigator";
+import { StatusBar } from "expo-status-bar";
 
 const Stack = createStackNavigator();
 
@@ -64,6 +65,7 @@ const App = () => {
   return (
     <UserProvider>
       <NavigationContainer>
+        <StatusBar style="light" />
         <NavigationContent />
       </NavigationContainer>
     </UserProvider>
