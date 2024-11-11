@@ -7,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
+import GenderOption from "../Components/GenderOption";
 
 const ProfileSetup = () => {
   const [username, setUsername] = useState("");
@@ -74,19 +75,6 @@ const ProfileSetup = () => {
     }
   };
 
-  const GenderOption = ({ type, icon, selected }) => (
-    <TouchableOpacity
-      onPress={() => setGender(type)}
-      className={`items-center p-1 rounded-full ${
-        selected ? "bg-blue-500" : "bg-gray-800"
-      }`}
-    >
-      <View className="w-16 h-16 rounded-full bg-gray-700 items-center justify-center">
-        {icon}
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <View className="flex-1 bg-black p-4">
       <View className="items-center mb-8">
@@ -139,11 +127,13 @@ const ProfileSetup = () => {
           type="male"
           icon={<Text className="text-5xl">👨🏻</Text>}
           selected={gender === "male"}
+          onSelect={setGender}
         />
         <GenderOption
           type="female"
           icon={<Text className="text-5xl">👩🏻</Text>}
           selected={gender === "female"}
+          onSelect={setGender}
         />
       </View>
 
