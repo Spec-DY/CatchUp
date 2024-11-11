@@ -1,3 +1,4 @@
+// LoginScreen.js
 import React, { useState } from "react";
 import { View, Text, Alert } from "react-native";
 import {
@@ -14,55 +15,69 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // set user to context
   const { setUser } = useUser();
-
-  // call firebase
   const auth = FIREBASE_AUTH;
-
   const navigation = useNavigation();
 
-  // user login
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     setLoading(true);
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        setUser(user);
-        navigation.replace("Tabs");
-        console.log(`user logged in ${user.email}`);
-      })
-      .catch((error) => Alert.alert("Login Error", error.message))
-      .finally(() => setLoading(false));
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      setUser(user);
+      navigation.replace("Tabs");
+    } catch (error) {
+      Alert.alert("Login Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // user register
-  const handleRegister = () => {
+  const handleRegister = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     setLoading(true);
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        Alert.alert("Registration Successful", `Welcome, ${user.email}`);
-        console.log(`user registered ${user.email}`);
-      })
-      .catch((error) => Alert.alert("Registration Error", error.message))
-      .finally(() => setLoading(false));
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      setUser(user);
+      // Navigate to profile setup
+      navigation.navigate("ProfileSetup");
+    } catch (error) {
+      Alert.alert("Registration Error", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <Text className="text-xl m-2 font-bold">Login or Register</Text>
+    <View className="flex-1 justify-center bg-white p-4">
+      <Text className="text-2xl font-bold mb-8 text-center">Welcome</Text>
 
-      {/* RNE Input */}
-      <View className="flex" >
+      <View className="space-y-4">
         <Input
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
-          className="border rounded border-gray-400 p-2 m-2"
+          leftIcon={{ type: "font-awesome", name: "envelope", size: 16 }}
         />
 
         <Input
@@ -71,21 +86,21 @@ const LoginScreen = () => {
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
-          className="border rounded border-gray-400 p-2 m-2"
+          // not font-awesome icon
+          leftIcon={{ type: "ionicon", name: "lock-closed", size: 16 }}
         />
       </View>
 
-      {/* React Native Element Buttons */}
-      <View className="flex-row justify-center">
+      <View className="flex-row justify-center space-x-4 mt-6">
         <Button
           title="LOG IN"
           buttonStyle={{
             backgroundColor: "black",
             borderRadius: 30,
+            paddingHorizontal: 30,
           }}
           containerStyle={{
-            width: 100,
-            marginHorizontal: 10,
+            width: 140,
           }}
           titleStyle={{ fontWeight: "bold" }}
           onPress={handleLogin}
@@ -97,10 +112,10 @@ const LoginScreen = () => {
           buttonStyle={{
             backgroundColor: "black",
             borderRadius: 30,
+            paddingHorizontal: 30,
           }}
           containerStyle={{
-            width: 100,
-            marginHorizontal: 10,
+            width: 140,
           }}
           titleStyle={{ fontWeight: "bold" }}
           onPress={handleRegister}
