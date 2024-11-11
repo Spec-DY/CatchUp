@@ -125,13 +125,13 @@ const ProfileSetup = () => {
       <View className="flex-row justify-around mb-8">
         <GenderOption
           type="male"
-          icon={<Text className="text-5xl">👨🏻</Text>}
+          icon={<Text className="text-4xl">👨🏻</Text>}
           selected={gender === "male"}
           onSelect={setGender}
         />
         <GenderOption
           type="female"
-          icon={<Text className="text-5xl">👩🏻</Text>}
+          icon={<Text className="text-4xl">👩🏻</Text>}
           selected={gender === "female"}
           onSelect={setGender}
         />
