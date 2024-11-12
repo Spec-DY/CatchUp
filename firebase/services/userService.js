@@ -17,14 +17,26 @@ export const userService = {
       const blob = await response.blob();
       const storageRef = ref(FIREBASE_STORAGE, `profile_images/${userId}`);
 
-      // upload
-      await uploadBytes(storageRef, blob);
+      // upload and get upload result
+      const uploadResult = await uploadBytes(storageRef, blob);
+      console.log("Upload result:", uploadResult);
 
-      const downloadURL = await getDownloadURL(storageRef);
-      return downloadURL;
+      // return the full path instead of download URL
+      return uploadResult.metadata.fullPath;
     } catch (error) {
       console.error("Error uploading profile image:", error);
       throw new Error("Failed to upload profile image");
+    }
+  },
+
+  // Helper function to get download URL from storage path
+  async getImageUrl(imagePath) {
+    try {
+      const storageRef = ref(FIREBASE_STORAGE, imagePath);
+      return await getDownloadURL(storageRef);
+    } catch (error) {
+      console.error("Error getting image URL:", error);
+      return null;
     }
   },
 

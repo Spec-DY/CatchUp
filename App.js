@@ -44,7 +44,12 @@ const NavigationContent = () => {
           name="ProfileSetup"
           component={ProfileSetup}
           options={{
-            headerShown: false,
+            headerStyle: {
+              backgroundColor: "black",
+              borderWidth: 0,
+              shadowOpacity: 0,
+            },
+            headerTintColor: "white",
             headerLeft: () => null,
             gestureEnabled: false,
           }}

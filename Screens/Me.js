@@ -1,10 +1,11 @@
 // Screens/Me.js
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
 import GenderOption from "../Components/GenderOption";
 import { useNavigation } from "@react-navigation/native";
+import { userService } from "../firebase/services/userService";
 
 const SettingItem = ({ title, value, subtitle, onPress }) => (
   <TouchableOpacity
@@ -20,8 +21,21 @@ const SettingItem = ({ title, value, subtitle, onPress }) => (
 const Me = () => {
   const { user, signOut } = useUser();
   const navigation = useNavigation();
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
-  console.log(user);
+  // console.log(user);
+
+  // Fetch avatar URL when component mounts or avatarUrl changes
+  useEffect(() => {
+    const loadAvatarUrl = async () => {
+      if (user?.avatarUrl) {
+        const url = await userService.getImageUrl(user.avatarUrl);
+        setAvatarUrl(url);
+      }
+    };
+
+    loadAvatarUrl();
+  }, [user?.avatarUrl]);
 
   const handleLogout = async () => {
     try {
@@ -48,8 +62,8 @@ const Me = () => {
         <TouchableOpacity className="mb-4" onPress={() => {}} disabled={true}>
           <Image
             source={
-              user?.avatarUrl
-                ? { uri: user.avatarUrl }
+              avatarUrl
+                ? { uri: avatarUrl }
                 : require("../assets/default-avatar.png")
             }
             className="w-24 h-24 rounded-full"
