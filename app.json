@@ -23,10 +23,17 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": ["ACCESS_FINE_LOCATION"]
-      
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "The app needs access to your camera."
+        }
+      ]
+    ]
   }
 }
