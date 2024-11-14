@@ -67,8 +67,8 @@ In developing: Friends collection
 ```javascript
   friends: {
   friendshipId: string,  // Unique ID for each friendship
-  user1: string,         // UID of the first user
-  user2: string,         // UID of the second user
+  user1: string,
+  user2: string,
     // potentially adding more users
   status: 'pending' | 'accepted' | 'blocked',  // Friendship status
   createdAt: timestamp,
@@ -80,17 +80,17 @@ In developing: Friends collection
 In developing: Activity collection
 ```javascript
     activities: {
-  activityId: string,          // Unique ID for each activity
+  activityId: string,
   userId: string,               // UID of the user performing the activity
   type: 'locationShare' | 'viewFriendLocation' | 'sendImage', // Type of activity
-  targetUserId: string,         // UID of the target friend (if applicable)
+  targetUserId: string,         // UID of the target friend
   location: {
     lat: number,
     lng: number
-  },                            // Location data (if applicable)
+  },
   timestamp: timestamp,         // When the activity occurred
   details: {                    // Additional details for specific activity types
-    imageUrl: string,           // Firebase Storage path for shared images (if applicable)
+    imageUrl: string,           // Firebase Storage path for shared images
     description: string         // Optional description or comment
       }
     }
