@@ -47,7 +47,7 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - ✅ Firebase Collections Structure
     
 User collection
-  ```javascript
+```javascript
   users: {
     uid: string,
     email: string,
@@ -62,10 +62,9 @@ User collection
       notifications: boolean
     }
   }
-  ```
-  In developing:
-  Friends collection
-    ```javascript
+```
+In developing: Friends collection
+```javascript
   friends: {
   friendshipId: string,  // Unique ID for each friendship
   user1: string,         // UID of the first user
@@ -76,10 +75,10 @@ User collection
   lastInteracted: timestamp,
   sharedLocations: boolean,   // if location sharing is enabled between friends
     }
-    ```
+```
 
-    Activity collection
-     ```javascript
+In developing: Activity collection
+```javascript
     activities: {
   activityId: string,          // Unique ID for each activity
   userId: string,               // UID of the user performing the activity
@@ -93,13 +92,11 @@ User collection
   details: {                    // Additional details for specific activity types
     imageUrl: string,           // Firebase Storage path for shared images (if applicable)
     description: string         // Optional description or comment
-  }
-}
- ```
+      }
+    }
+```
 
     
-
-
 ## Technical Highlights
 
 ### Authentication Flow
