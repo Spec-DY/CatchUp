@@ -12,7 +12,11 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - State management implementation
 
 **`Dingyang Jin`**
-
+- Functionality design
+- Firebase configuration for auth & database
+- Navigation (Map Screen)
+- Bottom tab
+- userContext
 ## Current Features Implementation
 
 ### Screenshots
