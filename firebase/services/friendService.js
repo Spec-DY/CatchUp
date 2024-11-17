@@ -1,4 +1,3 @@
-// firebase/services/friendService.js
 import { FIREBASE_DB } from "../firebaseConfig";
 import {
   collection,
