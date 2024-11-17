@@ -8,6 +8,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export const userService = {
   // Upload profile image to Firebase Storage
@@ -107,6 +108,33 @@ export const userService = {
     } catch (error) {
       console.error("Error updating user settings:", error);
       throw new Error("Failed to update user settings");
+    }
+  },
+
+  async findUserByEmail(email) {
+    if (!email) return null;
+
+    try {
+      const q = query(
+        collection(FIREBASE_DB, "users"),
+        where("email", "==", email.toLowerCase())
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return null;
+      }
+
+      const userDoc = snapshot.docs[0];
+      // Return consistent shape with getUserProfile
+      return {
+        uid: userDoc.id, // Use uid to be consistent
+        id: userDoc.id,
+        ...userDoc.data(),
+      };
+    } catch (error) {
+      console.error("Error finding user:", error);
+      throw new Error("Failed to find user by email");
     }
   },
 };
