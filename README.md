@@ -12,7 +12,10 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - State management implementation
 
 **`Dingyang Jin`**
-
+- Firebase configuration for auth & database
+- Navigation (Map Screen)
+- Bottom tab
+- userContext
 ## Current Features Implementation
 
 ### Screenshots
@@ -42,8 +45,9 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 ### Database Design
 
 - ✅ Firebase Collections Structure
-
-  ```javascript
+    
+User collection
+```javascript
   users: {
     uid: string,
     email: string,
@@ -58,10 +62,41 @@ CatchUp is a social map-app designed for seamless connection with friends, where
       notifications: boolean
     }
   }
-  ```
+```
+In developing: Friends collection
+```javascript
+  friends: {
+  friendshipId: string,  // Unique ID for each friendship
+  user1: string,
+  user2: string,
+    // potentially adding more users
+  status: 'pending' | 'accepted' | 'blocked',  // Friendship status
+  createdAt: timestamp,
+  lastInteracted: timestamp,
+  sharedLocations: boolean,   // if location sharing is enabled between friends
+    }
+```
 
+In developing: Activity collection
+```javascript
+    activities: {
+  activityId: string,
+  userId: string,               // UID of the user performing the activity
+  type: 'locationShare' | 'viewFriendLocation' | 'sendImage', // Type of activity
+  targetUserId: string,         // UID of the target friend
+  location: {
+    lat: number,
+    lng: number
+  },
+  timestamp: timestamp,         // When the activity occurred
+  details: {                    // Additional details for specific activity types
+    imageUrl: string,           // Firebase Storage path for shared images
+    description: string         // Optional description or comment
+      }
+    }
+```
 
-
+    
 ## Technical Highlights
 
 ### Authentication Flow
