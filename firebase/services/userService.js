@@ -137,4 +137,22 @@ export const userService = {
       throw new Error("Failed to find user by email");
     }
   },
+
+  // Add to userService.js
+  async updateUserLocation(userId, location) {
+    try {
+      const userRef = doc(FIREBASE_DB, "users", userId);
+      await updateDoc(userRef, {
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          timestamp: serverTimestamp(),
+        },
+        lastActive: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error updating location:", error);
+      throw error;
+    }
+  },
 };
