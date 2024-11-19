@@ -126,7 +126,7 @@ In developing: Activity collection
 
 ## Next Steps
 
-- [✅] Implement friend request system
+- ✅ Implement friend request system
 - [ ] Add real-time location sharing
 - [ ] Create friend list management
 - [ ] Add notification system
