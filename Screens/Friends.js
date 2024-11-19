@@ -95,10 +95,12 @@ const Friends = () => {
 
     setSearching(true);
     try {
+      // store user in result
       const result = await userService.findUserByEmail(email);
       if (result?.uid === user.uid) {
         setSearchResult({ error: "You can't add yourself!" });
       } else {
+        // find user in friend lists
         const existing = friends.find((f) => f.users.includes(result?.uid));
         const pending = pendingRequests.find((r) =>
           r.users.includes(result?.uid)
@@ -106,7 +108,10 @@ const Friends = () => {
 
         setSearchResult({
           user: result,
+          // force converting to boolean by !!
+          // exsiting will be convert to true if the user is already a friend
           alreadyFriend: !!existing,
+          // pending will be convert to true if the user has already sent a request
           pendingRequest: !!pending,
         });
       }
@@ -116,7 +121,7 @@ const Friends = () => {
     } finally {
       setSearching(false);
     }
-  }, 500);
+  }, 1000);
 
   const handleSendRequest = async (receiverId) => {
     try {
