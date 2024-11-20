@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
-import MapboxGL from "@rnmapbox/maps";
+import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
+import { Image } from "react-native";
 
 const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 // Initialize Mapbox with access token
-MapboxGL.setAccessToken(mapboxToken);
+Mapbox.setAccessToken(mapboxToken);
 
 const Map = () => {
   const { user } = useUser();
@@ -31,8 +32,8 @@ const Map = () => {
       locationSubscriber = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 30000,
-          distanceInterval: 100,
+          timeInterval: 3000000,
+          distanceInterval: 20,
         },
         async (newLocation) => {
           const loc = {
@@ -103,36 +104,75 @@ const Map = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MapboxGL.MapView style={{ flex: 1 }} styleURL={MapboxGL.StyleURL.Street}>
-        <MapboxGL.Camera
+      <MapView
+        style={{ flex: 1 }}
+        styleURL={Mapbox.StyleURL.Dark}
+        terrain={true}
+        pitchEnabled={true}
+        pitch={60}
+      >
+        <Mapbox.Camera
           zoomLevel={14}
           centerCoordinate={[location.longitude, location.latitude]}
           followUserLocation={true}
         />
 
-        <MapboxGL.UserLocation visible={true} />
+        <Mapbox.UserLocation visible={true} />
 
         {/* Show friend markers */}
         {friends.map((friend) =>
           friend.location && friend.settings?.locationSharing ? (
-            <MapboxGL.PointAnnotation
+            <Mapbox.PointAnnotation
               key={friend.uid}
               id={friend.uid}
               coordinate={[friend.location.longitude, friend.location.latitude]}
             >
-              <MapboxGL.Callout title={friend.username}>
-                <View>
-                  <Text>{friend.username}</Text>
-                  <Text>
+              {/* Square Avatar Container */}
+              <View className="w-12 h-12 rounded-lg overflow-hidden border-4 border-white">
+                <Image
+                  source={
+                    friend.profile?.avatarUrl
+                      ? { uri: friend.profile.avatarUrl }
+                      : require("../assets/default-avatar.png")
+                  }
+                  defaultSource={require("../assets/default-avatar.png")}
+                  onError={() =>
+                    console.log(
+                      `Failed to load avatar for ${friend.profile?.username}`
+                    )
+                  }
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              </View>
+
+              {/* Info Callout */}
+              <Mapbox.Callout title={friend.username}>
+                <View className="p-3 bg-gray-800 rounded-lg min-w-[120px]">
+                  {/* Username row */}
+                  <View className="flex-row justify-between items-center mb-1">
+                    <Text className="text-white font-medium">
+                      {friend.username}
+                    </Text>
+                  </View>
+
+                  {/* Last updated row */}
+                  <Text className="text-gray-400 text-xs">
                     Last updated:{" "}
-                    {new Date(friend.location.timestamp).toLocaleTimeString()}
+                    {friend.location.timestamp
+                      ?.toDate()
+                      .toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
                   </Text>
                 </View>
-              </MapboxGL.Callout>
-            </MapboxGL.PointAnnotation>
+              </Mapbox.Callout>
+            </Mapbox.PointAnnotation>
           ) : null
         )}
-      </MapboxGL.MapView>
+      </MapView>
     </View>
   );
 };
