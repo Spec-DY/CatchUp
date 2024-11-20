@@ -22,7 +22,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.anonymous.locationSharing"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +36,13 @@
         "expo-image-picker",
         {
           "cameraPermission": "The app needs access to your camera."
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "RNMapboxMapsDownloadToken": "Your Map Box SK token"
         }
       ]
     ]
