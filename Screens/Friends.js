@@ -253,6 +253,7 @@ const Friends = () => {
             ) : searchResult.user ? (
               <View>
                 <View className="flex-row items-center">
+                  {/*!!! need to be modified set to default avatar if avatar undefined */}
                   <Image
                     source={{ uri: searchResult.user.avatarUrl }}
                     className="w-12 h-12 rounded-full mr-4"

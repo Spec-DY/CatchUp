@@ -8,6 +8,8 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import { Image } from "react-native";
 
+const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
+
 const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 // Initialize Mapbox with access token
 Mapbox.setAccessToken(mapboxToken);
@@ -17,6 +19,37 @@ const Map = () => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [friends, setFriends] = useState([]);
+
+  const [cityName, setCityName] = useState("");
+  const [weather, setWeather] = useState(null);
+
+  const fetchWeatherAndCity = async (latitude, longitude) => {
+    try {
+      // Get city name from reverse geocoding
+      const response = await fetch(
+        `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${OPENWEATHER_API_KEY}`
+      );
+      const data = await response.json();
+      console.log("Location data:", data);
+      setCityName(data[0]?.name || "Unknown Location");
+
+      // Get weather data
+      const weatherResponse = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${OPENWEATHER_API_KEY}`
+      );
+      const weatherData = await weatherResponse.json();
+      console.log("Weather data:", weatherData);
+      setWeather(weatherData);
+    } catch (error) {
+      console.error("Error fetching location info:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (location) {
+      fetchWeatherAndCity(location.latitude, location.longitude);
+    }
+  }, [location]);
 
   useEffect(() => {
     let locationSubscriber;
@@ -104,6 +137,20 @@ const Map = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Weather and City Info Overlay */}
+      <View className="absolute top-12 left-4 z-10 bg-black/50 rounded-lg p-3">
+        <Text className="text-white text-lg font-semibold">
+          {cityName || "Loading location..."}
+        </Text>
+        {weather?.main ? (
+          <Text className="text-white text-sm">
+            {Math.round(weather.main.temp)}°C{" "}
+            {weather.weather?.[0]?.description}
+          </Text>
+        ) : (
+          <Text className="text-white text-sm">Loading weather...</Text>
+        )}
+      </View>
       <MapView
         style={{ flex: 1 }}
         styleURL={Mapbox.StyleURL.Dark}
@@ -113,8 +160,15 @@ const Map = () => {
       >
         <Mapbox.Camera
           zoomLevel={14}
-          centerCoordinate={[location.longitude, location.latitude]}
-          followUserLocation={true}
+          centerCoordinate={
+            // If friends exist, center on first friend, otherwise center on user
+            friends[0]?.location
+              ? [friends[0].location.longitude, friends[0].location.latitude]
+              : [location.longitude, location.latitude]
+          }
+          followUserLocation={false}
+          followZoomLevel={14}
+          animationDuration={200}
         />
 
         <Mapbox.UserLocation visible={true} />
@@ -131,7 +185,7 @@ const Map = () => {
               <View className="w-12 h-12 rounded-lg overflow-hidden border-4 border-white">
                 <Image
                   source={
-                    friend.profile?.avatarUrl
+                    friend.profile?.avatarUrl !== undefined
                       ? { uri: friend.profile.avatarUrl }
                       : require("../assets/default-avatar.png")
                   }
