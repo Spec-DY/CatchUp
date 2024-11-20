@@ -6,6 +6,8 @@ import {
   getDoc,
   updateDoc,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -152,6 +154,32 @@ export const userService = {
       });
     } catch (error) {
       console.error("Error updating location:", error);
+      throw error;
+    }
+  },
+
+  async addFriend(userId, friendId) {
+    try {
+      const userRef = doc(FIREBASE_DB, "users", userId);
+      await updateDoc(userRef, {
+        friends: arrayUnion(friendId),
+        lastActive: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      throw error;
+    }
+  },
+
+  async removeFriend(userId, friendId) {
+    try {
+      const userRef = doc(FIREBASE_DB, "users", userId);
+      await updateDoc(userRef, {
+        friends: arrayRemove(friendId),
+        lastActive: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error removing friend:", error);
       throw error;
     }
   },

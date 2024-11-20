@@ -99,19 +99,21 @@ const Friends = () => {
       const result = await userService.findUserByEmail(email);
       if (result?.uid === user.uid) {
         setSearchResult({ error: "You can't add yourself!" });
+      } else if (user.friends?.includes(result?.uid)) {
+        setSearchResult({
+          user: result,
+          alreadyFriend: true,
+        });
       } else {
-        // find user in friend lists
-        const existing = friends.find((f) => f.users.includes(result?.uid));
+        // Check pending requests only if not already friends
         const pending = pendingRequests.find((r) =>
           r.users.includes(result?.uid)
         );
 
         setSearchResult({
           user: result,
-          // force converting to boolean by !!
-          // exsiting will be convert to true if the user is already a friend
-          alreadyFriend: !!existing,
-          // pending will be convert to true if the user has already sent a request
+          alreadyFriend: false,
+          // force convert to boolean
           pendingRequest: !!pending,
         });
       }
@@ -155,22 +157,62 @@ const Friends = () => {
     }
   };
 
+  const handleRemoveFriend = async (friendId) => {
+    try {
+      await friendService.removeFriendship(user.uid, friendId);
+      Alert.alert("Success", "Friend removed successfully");
+    } catch (error) {
+      console.error("Error removing friend:", error);
+      Alert.alert("Error", "Failed to remove friend");
+    }
+  };
+
   const renderFriend = ({ item }) => (
-    <TouchableOpacity
-      className="flex-row items-center p-4 bg-gray-800 rounded-lg mb-2"
-      onPress={() => {
-        /* Navigate to friend profile */
-      }}
-    >
-      <Image
-        source={{ uri: item.profile.avatarUrl }}
-        className="w-12 h-12 rounded-full mr-4"
-      />
-      <View>
-        <Text className="text-white font-medium">{item.profile.username}</Text>
-        <Text className="text-gray-400">Online status</Text>
-      </View>
-    </TouchableOpacity>
+    <View className="bg-gray-800 rounded-lg mb-2">
+      <TouchableOpacity
+        className="flex-row items-center justify-between p-4"
+        onPress={() => {
+          /* Navigate to friend profile */
+        }}
+      >
+        <View className="flex-row items-center">
+          <Image
+            source={{ uri: item.profile.avatarUrl }}
+            className="w-12 h-12 rounded-full mr-4"
+          />
+          <View>
+            <Text className="text-white font-medium">
+              {item.profile.username}
+            </Text>
+            <Text className="text-gray-400">Online status</Text>
+          </View>
+        </View>
+
+        {/* Circular Remove Friend Button */}
+        <TouchableOpacity
+          className="h-10 w-10 bg-red-500 rounded-full items-center justify-center"
+          onPress={() => {
+            Alert.alert(
+              "Remove Friend",
+              `Are you sure you want to remove ${item.profile.username} from your friends?`,
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                },
+                {
+                  text: "Remove",
+                  onPress: () => handleRemoveFriend(item.profile.uid),
+                  style: "destructive",
+                },
+              ]
+            );
+          }}
+        >
+          <Text className="text-white text-xl">×</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 
   if (loading) {
