@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
-import MapView, { Marker, Callout } from "react-native-maps";
+import MapboxGL from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
-import { friendService } from "../firebase/services/friendService";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
+
+const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+// Initialize Mapbox with access token
+MapboxGL.setAccessToken(mapboxToken);
 
 const Map = () => {
   const { user } = useUser();
@@ -100,41 +103,36 @@ const Map = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ width: "100%", height: "100%" }}
-        region={{
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        showsUserLocation={true}
-        followsUserLocation={true}
-      >
+      <MapboxGL.MapView style={{ flex: 1 }} styleURL={MapboxGL.StyleURL.Street}>
+        <MapboxGL.Camera
+          zoomLevel={14}
+          centerCoordinate={[location.longitude, location.latitude]}
+          followUserLocation={true}
+        />
+
+        <MapboxGL.UserLocation visible={true} />
+
         {/* Show friend markers */}
-        {friends.map(
-          (friend) =>
-            friend.location &&
-            friend.settings?.locationSharing && (
-              <Marker
-                key={friend.uid}
-                coordinate={friend.location}
-                title={friend.username}
-                pinColor="blue"
-              >
-                <Callout>
-                  <View>
-                    <Text>{friend.username}</Text>
-                    <Text>
-                      Last updated:{" "}
-                      {new Date(friend.location.timestamp).toLocaleTimeString()}
-                    </Text>
-                  </View>
-                </Callout>
-              </Marker>
-            )
+        {friends.map((friend) =>
+          friend.location && friend.settings?.locationSharing ? (
+            <MapboxGL.PointAnnotation
+              key={friend.uid}
+              id={friend.uid}
+              coordinate={[friend.location.longitude, friend.location.latitude]}
+            >
+              <MapboxGL.Callout title={friend.username}>
+                <View>
+                  <Text>{friend.username}</Text>
+                  <Text>
+                    Last updated:{" "}
+                    {new Date(friend.location.timestamp).toLocaleTimeString()}
+                  </Text>
+                </View>
+              </MapboxGL.Callout>
+            </MapboxGL.PointAnnotation>
+          ) : null
         )}
-      </MapView>
+      </MapboxGL.MapView>
     </View>
   );
 };
