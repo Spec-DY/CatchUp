@@ -113,36 +113,37 @@ createdAt: timestamp,
     
 ## Technical Highlights
 
-### Authentication Flow
+### Map Layer Toggle
 
-- Implemented secure email/password authentication using Firebase Auth
-- Added password recovery system
-- Created seamless navigation flow between auth states
+- Implemented a toggle button for seamless switching between map layers
+- Layer 1: Displays user posts with geotagged markers
+- Layer 2: Highlights friends' current locations
+- Enhanced user experience by reducing map clutter and providing clear views of each layer
 
-### Profile Management
+### Friend Management System
 
-- Designed and implemented profile setup workflow
-- Integrated Firebase Storage for profile image management
-- Created custom gender selection component
+- Designed and implemented a robust friend management feature
+- Enabled searching for users by email with real-time suggestions
+- Integrated functionality to send, accept, or reject friend requests
+- Added the ability to remove friends from the list with immediate updates
 
 ### State Management
 
-- Implemented UserContext for global user state management
-- Created efficient user data caching system
-- Managed complex authentication states
+- Utilized React Context for efficient global state management of user and friend data
+- Cached map and user data locally for faster loading and improved app performance
+- Effectively handled asynchronous updates for friend requests and map interactions
 
 ## Branch Strategy
 
 - `main`: N/A
-- `LoginScreen`: Authentication feature development
-- `ProfileScreen`: User profile management
-- `profileSetup`: Profile creation workflow
+- `Mapbox`: Fully functional map and friend system
+- `dev`: Our last build based on Google Maps
 
 ## Next Steps
 
-- ✅ Implement friend request system
-- ✅ Add real-time location sharing
-- ✅ Create friend list management
+- [x] Implement friend request system
+- [x] Add real-time location sharing
+- [x] Create friend list management
 - [ ] Add notification system
 - [ ] Implement location privacy controls
 - [ ] User friendly UI improvement
