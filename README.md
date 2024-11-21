@@ -12,7 +12,7 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - State management implementation
 
 **`Dingyang Jin`**
-- Move to Mapbox
+- Mapbox Migration
 - Friends screen (add friend system)
 - Map Screen (add friend layer and post layer)
 
@@ -30,44 +30,44 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 ### Friend System & Map Display
 
 #### `Friends.js`
-- ✅ Manage friends and friend requests
+##### ✅ Manage friends and friend requests
  - Display list of friends with profile pictures
  - Display pending friend requests
  - Accept or reject friend requests
  - Remove friends from the list
-- ✅ Search for users by email
+##### ✅ Search for users by email
  - Input field for email search
  - Search button to trigger search
  - Display search results with user profile pictures
  - Handle errors and display appropriate messages
-- ✅ Real-time updates
+##### ✅ Real-time updates
  - Subscribe to friends collection for real-time updates
  - Subscribe to pending requests collection for real-time updates
-- ✅ User interactions
+##### ✅ User interactions
  - Send friend requests
  - Accept or reject friend requests
  - Remove friends from the list
 #### `Map.js`
-✅ Display user location on a map
+##### ✅ Display user location on a map
  - Initialize Mapbox with access token
  - Display user location with high accuracy
  - Fetch and display city name and weather information
-✅ Display friends' locations on the map
+##### ✅ Display friends' locations on the map
  - Subscribe to friends collection for real-time updates
  - Display friends' locations with profile pictures
  - Show callouts with friend information on marker click
-✅ Display posts on the map
+##### ✅ Display posts on the map
  - Subscribe to posts collection for real-time updates
  - Display posts with thumbnails on the map
  - Show callouts with post details on marker click
-✅ User interactions
+##### ✅ User interactions
  - Toggle between friends and posts view
  - Add new posts with camera integration
  - Handle location permissions and errors
 
 ### Database Design
 
-- ✅ Firebase Collections Structure
+Firebase Collections Structure
     
 User collection
 ```javascript
