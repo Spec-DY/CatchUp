@@ -11,9 +11,10 @@ import { useUser } from "../Context/UserContext";
 import { friendService } from "../firebase/services/friendService";
 import { userService } from "../firebase/services/userService";
 import { Input } from "@rneui/themed";
-import { debounce } from "lodash";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
+import defaultAvatar from "../assets/default-avatar.png";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const Friends = () => {
   const { user } = useUser();
@@ -23,6 +24,17 @@ const Friends = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [searching, setSearching] = useState(false);
+  const [searchResultAvatar, setSearchResultAvatar] = useState(null);
+
+  // Add helper function to load avatar URL
+  const loadSearchResultAvatar = async (avatarPath) => {
+    try {
+      const url = await userService.getImageUrl(avatarPath);
+      setSearchResultAvatar(url);
+    } catch (error) {
+      console.log("Error loading avatar:", error);
+    }
+  };
 
   useEffect(() => {
     // Subscribe to friends collection changes
@@ -87,7 +99,8 @@ const Friends = () => {
     };
   }, [user.uid]);
 
-  const searchUser = debounce(async (email) => {
+  const searchUser = async (email) => {
+    setSearchResultAvatar(null);
     if (!email) {
       setSearchResult(null);
       return;
@@ -95,25 +108,38 @@ const Friends = () => {
 
     setSearching(true);
     try {
-      // store user in result
       const result = await userService.findUserByEmail(email);
+      if (!result) {
+        setSearchResult({ error: "User not found" });
+        return;
+      }
       if (result?.uid === user.uid) {
         setSearchResult({ error: "You can't add yourself!" });
+        return;
       } else if (user.friends?.includes(result?.uid)) {
+        // Get avatar URL before setting result
+        if (result.avatarUrl) {
+          const avatarUrl = await userService.getImageUrl(result.avatarUrl);
+          result.avatarUrl = avatarUrl;
+          await loadSearchResultAvatar(result.avatarUrl); // Load avatar here
+        }
         setSearchResult({
           user: result,
           alreadyFriend: true,
         });
       } else {
-        // Check pending requests only if not already friends
         const pending = pendingRequests.find((r) =>
           r.users.includes(result?.uid)
         );
-
+        // Get avatar URL before setting result
+        if (result.avatarUrl) {
+          const avatarUrl = await userService.getImageUrl(result.avatarUrl);
+          result.avatarUrl = avatarUrl;
+          await loadSearchResultAvatar(result.avatarUrl); // Load avatar here
+        }
         setSearchResult({
           user: result,
           alreadyFriend: false,
-          // force convert to boolean
           pendingRequest: !!pending,
         });
       }
@@ -123,7 +149,7 @@ const Friends = () => {
     } finally {
       setSearching(false);
     }
-  }, 1000);
+  };
 
   const handleSendRequest = async (receiverId) => {
     try {
@@ -177,8 +203,17 @@ const Friends = () => {
       >
         <View className="flex-row items-center">
           <Image
-            source={{ uri: item.profile.avatarUrl }}
+            source={
+              item.profile?.avatarUrl
+                ? { uri: item.profile.avatarUrl }
+                : defaultAvatar
+            }
+            defaultSource={defaultAvatar}
+            onError={() =>
+              console.log(`Failed to load avatar for ${item.profile?.username}`)
+            }
             className="w-12 h-12 rounded-full mr-4"
+            resizeMode="cover"
           />
           <View>
             <Text className="text-white font-medium">
@@ -227,20 +262,24 @@ const Friends = () => {
     <View className="flex-1 bg-black p-4">
       {/* Search Section */}
       <View className="mb-4">
-        <Input
-          placeholder="Search by email"
-          value={searchEmail}
-          onChangeText={(text) => {
-            setSearchEmail(text);
-            searchUser(text);
-          }}
-          leftIcon={{ type: "font-awesome", name: "search", color: "gray" }}
-          inputStyle={{ color: "white" }}
-          placeholderTextColor="gray"
-          containerStyle={{ paddingHorizontal: 0 }}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+        <View className="flex-row items-center">
+          <Input
+            placeholder="Search by email"
+            value={searchEmail}
+            onChangeText={setSearchEmail}
+            inputStyle={{ color: "white" }}
+            placeholderTextColor="gray"
+            containerStyle={{ flex: 1, paddingHorizontal: 0, marginRight: 8 }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TouchableOpacity
+            onPress={() => searchEmail && searchUser(searchEmail)}
+            className="bg-gray-800 p-3 rounded-full"
+          >
+            <MaterialIcons name="search" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
 
         {searching && (
           <Text className="text-gray-400 text-center">Searching...</Text>
@@ -253,10 +292,20 @@ const Friends = () => {
             ) : searchResult.user ? (
               <View>
                 <View className="flex-row items-center">
-                  {/*!!! need to be modified set to default avatar if avatar undefined */}
                   <Image
-                    source={{ uri: searchResult.user.avatarUrl }}
+                    source={
+                      searchResultAvatar
+                        ? { uri: searchResultAvatar }
+                        : defaultAvatar
+                    }
+                    defaultSource={defaultAvatar}
+                    onError={() =>
+                      console.log(
+                        `Failed to load avatar for ${searchResult.user?.username}`
+                      )
+                    }
                     className="w-12 h-12 rounded-full mr-4"
+                    resizeMode="cover"
                   />
                   <View>
                     <Text className="text-white font-medium">

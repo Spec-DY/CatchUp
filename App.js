@@ -1,4 +1,5 @@
 import "react-native-gesture-handler";
+// import LocationPermissionManager from "./Components/LocationPermissionManager";
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -70,6 +71,8 @@ const NavigationContent = () => {
 const App = () => {
   return (
     <UserProvider>
+      {/* this is not avalible yet need some debugging */}
+      {/* <LocationPermissionManager /> */}
       <NavigationContainer>
         <StatusBar style="light" />
         <NavigationContent />
