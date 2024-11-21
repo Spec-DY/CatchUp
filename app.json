@@ -14,7 +14,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current position on the map."
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"],
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current position on the map.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Keep sharing your location in background"
       }
     },
     "android": {
@@ -24,7 +26,9 @@
       },
       "permissions": [
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.NOTIFICATIONS"
       ],
       "package": "com.anonymous.locationSharing"
     },
@@ -42,7 +46,15 @@
         "@rnmapbox/maps",
         {
           "RNMapboxMapsImpl": "mapbox",
-          "RNMapboxMapsDownloadToken": "Your Map Box SK token"
+          "RNMapboxMapsDownloadToken": "Mapbox Secret API key"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app needs access to location to share your position with friends.",
+          "locationAlwaysPermission": "This app needs background location access to update your position.",
+          "isAndroidBackgroundLocationEnabled": true
         }
       ]
     ]
