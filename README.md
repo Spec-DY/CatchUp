@@ -12,35 +12,58 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - State management implementation
 
 **`Dingyang Jin`**
-- Firebase configuration for auth & database
-- Navigation (Map Screen)
-- Bottom tab
-- userContext
-## Current Features Implementation
+- Move to Mapbox
+- Friends screen (add friend system)
+- Map Screen (add friend layer and post layer)
 
+## Current Features Implementation
 ### Screenshots
 
 
 
 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-    <img src="/assets/docs/signup.jpg" width="200" alt="Login Screen"/>
-    <img src="/assets/docs/profileSetup1.jpg" width="200" alt="Profile Setup 1"/>
-    <img src="/assets/docs/profileSetup2.jpg" width="200" alt="Profile Setup 2"/>
-    <img src="/assets/docs/profile.jpg" width="200" alt="Profile Screen"/>
+    <img src="/assets/docs/friendslocation.jpg" width="200" alt="Login Screen"/>
+    <img src="/assets/docs/searchfriend.jpg" width="200" alt="Profile Setup 1"/>
+    <img src="/assets/docs/postdetail.jpg" width="200" alt="Profile Setup 2"/>
 </div>
 
-### Authentication & Profile Management
+### Friend System & Map Display
 
-- ✅ Complete user authentication system
-  - Email/Password login
-  - New user registration
-  - Password recovery functionality
-  - CRUD operations
-- ✅ User profile setup flow
-  - Username customization
-  - Profile photo upload with Firebase Storage
-  - Gender selection with custom UI
-- ✅ Global user state management using Context API
+#### `Friends.js`
+- ✅ Manage friends and friend requests
+ - Display list of friends with profile pictures
+ - Display pending friend requests
+ - Accept or reject friend requests
+ - Remove friends from the list
+- ✅ Search for users by email
+ - Input field for email search
+ - Search button to trigger search
+ - Display search results with user profile pictures
+ - Handle errors and display appropriate messages
+- ✅ Real-time updates
+ - Subscribe to friends collection for real-time updates
+ - Subscribe to pending requests collection for real-time updates
+- ✅ User interactions
+ - Send friend requests
+ - Accept or reject friend requests
+ - Remove friends from the list
+#### `Map.js`
+✅ Display user location on a map
+ - Initialize Mapbox with access token
+ - Display user location with high accuracy
+ - Fetch and display city name and weather information
+✅ Display friends' locations on the map
+ - Subscribe to friends collection for real-time updates
+ - Display friends' locations with profile pictures
+ - Show callouts with friend information on marker click
+✅ Display posts on the map
+ - Subscribe to posts collection for real-time updates
+ - Display posts with thumbnails on the map
+ - Show callouts with post details on marker click
+✅ User interactions
+ - Toggle between friends and posts view
+ - Add new posts with camera integration
+ - Handle location permissions and errors
 
 ### Database Design
 
@@ -63,37 +86,28 @@ User collection
     }
   }
 ```
-In developing: Friends collection
+Friends collection (it act as a friend request handler)
 ```javascript
-  friends: {
-  friendshipId: string,  // Unique ID for each friendship
-  user1: string,
-  user2: string,
-    // potentially adding more users
-  status: 'pending' | 'accepted' | 'blocked',  // Friendship status
+  acceptedAt: timestamp
   createdAt: timestamp,
-  lastInteracted: timestamp,
-  sharedLocations: boolean,   // if location sharing is enabled between friends
-    }
+  receiver: string,
+  sender: string,
+  status: 'pending' | 'accepted' | 'removed'
+  updatedAt: timestamp,
+  users:
+    0:uid,
+    1:uid
 ```
 
-In developing: Activity collection
+Post collection (store post info and image url)
 ```javascript
-    activities: {
-  activityId: string,
-  userId: string,               // UID of the user performing the activity
-  type: 'locationShare' | 'viewFriendLocation' | 'sendImage', // Type of activity
-  targetUserId: string,         // UID of the target friend
-  location: {
-    lat: number,
-    lng: number
-  },
-  timestamp: timestamp,         // When the activity occurred
-  details: {                    // Additional details for specific activity types
-    imageUrl: string,           // Firebase Storage path for shared images
-    description: string         // Optional description or comment
-      }
-    }
+    caption: string,
+createdAt: timestamp,
+  imageUrl: string URL,
+  location: [
+    lat,lng: geopoint
+],
+  userId: uid
 ```
 
     
@@ -127,25 +141,56 @@ In developing: Activity collection
 ## Next Steps
 
 - ✅ Implement friend request system
-- [ ] Add real-time location sharing
-- [ ] Create friend list management
+- ✅ Add real-time location sharing
+- ✅ Create friend list management
 - [ ] Add notification system
 - [ ] Implement location privacy controls
+- [ ] User friendly UI improvement
 
-## Getting Started
+## Note
+### After Switching to Unmanaged Expo
+- **Expo Go** can no longer be used. You must use an emulator or connect your device via USB.
+- Alternatively, you can manually install the APK:  
+  `android\app\build\outputs\apk\debug\app-debug.apk`.
 
-1. Install dependencies:
+---
 
+### Step 1: Add the Mapbox API Key to `app.json` Plugins
+Update the `app.json` file by adding the following to the `plugins` section:
+```json
+{
+  "plugins": [
+    [
+      "@rnmapbox/maps",
+      {
+        "RNMapboxMapsImpl": "mapbox",
+        "RNMapboxMapsDownloadToken": "Mapbox Secret API key"
+      }
+    ]
+  ]
+}
+```
+### Step 2: Update the .env File
+
+Add the required keys for Mapbox and OpenWeather in the .env file, in addition to the Firebase API keys:
 ```bash
-npm install
+EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN="Mapbox Public API key"
+EXPO_PUBLIC_OPEN_WEATHER_API=your_open_weather_key
+```
+**Notice** Mapbox has Public API key which start with pk and Secret API key which start with sk, they are different.
+
+### Step 3: Run Prebuild
+
+Clean and prepare the build with the following command:
+```bash
+npx expo prebuild --clean
 ```
 
-1. Configure Firebase:
-  
-- Create your Firebase configuration to `.env`
+### Step 4: Run the App on Your Device
 
-1. Start the development server:
-
+- Enable USB debugging on your phone (for Android, enable ADB).
+- Connect your phone to the computer.
+- Run the app on Android or iOS:
 ```bash
-npm start
+npx expo run:android
 ```
