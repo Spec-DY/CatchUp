@@ -157,7 +157,7 @@ createdAt: timestamp,
 ---
 
 ### Step 1: Add the Mapbox API Key to `app.json` Plugins
-Update the `app.json` file by adding the following to the `plugins` section:
+Update the `app.json` file by replacing `Mapbox Secret API` with the actual key started with `sk.`:
 ```json
 {
   "plugins": [
