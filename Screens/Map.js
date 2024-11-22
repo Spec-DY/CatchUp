@@ -182,9 +182,22 @@ const Map = () => {
         friendsData.map(async (friend) => {
           const friendId = friend.users.find((id) => id !== user.uid);
           const profile = await userService.getUserProfile(friendId);
+
+          let avatarUrl = null;
+          if (profile.avatarUrl) {
+            try {
+              avatarUrl = await userService.getImageUrl(profile.avatarUrl);
+            } catch (error) {
+              console.log("Error loading avatar:", error);
+            }
+          }
           return {
             ...friend,
             ...profile,
+            profile: {
+              username: profile.username,
+              avatarUrl: avatarUrl,
+            },
           };
         })
       );
@@ -343,49 +356,77 @@ const Map = () => {
         {/* Friend Markers - only show if viewMode is 'all' or 'friends' */}
         {viewMode === "friends" &&
           friends.map((friend) =>
-            (friend.location && friend.settings?.locationSharing) ? (
-              <Mapbox.PointAnnotation
+            friend.location && friend.settings?.locationSharing ? (
+              <Mapbox.MarkerView
                 key={friend.uid}
                 id={friend.uid}
                 coordinate={[
                   friend.location.longitude,
                   friend.location.latitude,
                 ]}
-                selected={selectedAnnotation === friend.uid}
-                onSelected={() => setSelectedAnnotation(friend.uid)}
-                onDeselected={() => setSelectedAnnotation(null)}
+                allowOverlap={true}
               >
-                {/* Square Avatar Container */}
-                <View className="w-12 h-12 rounded-lg overflow-hidden border-4 border-white">
+                <TouchableOpacity
+                  onPress={() => setSelectedAnnotation(friend.uid)}
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    borderWidth: 4,
+                    borderColor: "white",
+                    backgroundColor: "#374151",
+                  }}
+                >
                   <Image
                     source={
-                      friend.profile?.avatarUrl !== undefined
-                        ? { uri: friend.profile.avatarUrl }
+                      friend.profile?.avatarUrl
+                        ? {
+                            uri: friend.profile.avatarUrl,
+                            cache: "force-cache",
+                          }
                         : require("../assets/default-avatar.png")
                     }
                     defaultSource={require("../assets/default-avatar.png")}
-                    onError={() =>
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                    }}
+                    resizeMode="cover"
+                    onError={(e) =>
                       console.log(
-                        `Failed to load avatar for ${friend.profile?.username}`
+                        `Failed to load avatar for ${friend.username}:`,
+                        e.nativeEvent.error
                       )
                     }
-                    className="w-full h-full"
-                    resizeMode="cover"
                   />
-                </View>
+                </TouchableOpacity>
 
-                {/* Info Callout */}
-                <Mapbox.Callout title={friend.username}>
-                  <View className="p-3 bg-gray-800 rounded-lg min-w-[120px]">
-                    {/* Username row */}
-                    <View className="flex-row justify-between items-center mb-1">
-                      <Text className="text-white font-medium">
+                {selectedAnnotation === friend.uid && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: 55,
+                      backgroundColor: "#1f2937",
+                      padding: 12,
+                      borderRadius: 8,
+                      minWidth: 120,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 4,
+                      }}
+                    >
+                      <Text style={{ color: "white", fontWeight: "500" }}>
                         {friend.username}
                       </Text>
                     </View>
 
-                    {/* Last updated row */}
-                    <Text className="text-gray-400 text-xs">
+                    <Text style={{ color: "#9ca3af", fontSize: 12 }}>
                       Last updated:{" "}
                       {friend.location.timestamp
                         ?.toDate()
@@ -396,8 +437,8 @@ const Map = () => {
                         })}
                     </Text>
                   </View>
-                </Mapbox.Callout>
-              </Mapbox.PointAnnotation>
+                )}
+              </Mapbox.MarkerView>
             ) : null
           )}
       </MapView>
