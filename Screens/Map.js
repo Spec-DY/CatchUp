@@ -105,15 +105,25 @@ const Map = () => {
           snapshot.docs.map(async (doc) => {
             const data = doc.data();
             const userProfile = await userService.getUserProfile(data.userId);
+
+            const location = data.location
+              ? {
+                  latitude: data.location.latitude,
+                  longitude: data.location.longitude,
+                }
+              : null;
+
             return {
               id: doc.id,
               ...data,
+              location,
               username: userProfile.username,
               isOwnPost: data.userId === user.uid, // Add flag to identify own posts
             };
           })
         );
-        setPosts(postsData);
+        const validPosts = postsData.filter((post) => post.location);
+        setPosts(validPosts);
       }
     );
 
@@ -252,58 +262,88 @@ const Map = () => {
         {/* Post Markers - only show if viewMode is 'all' or 'posts' */}
         {viewMode === "posts" &&
           posts.map((post) => (
-            <Mapbox.PointAnnotation
+            <Mapbox.MarkerView
               key={post.id}
               id={post.id}
               coordinate={[post.location.longitude, post.location.latitude]}
-              anchor={{ x: 0.5, y: 0.5 }}
-              // Show callout if selectedAnnotation matches post id
-              selected={selectedAnnotation === post.id}
-              // Set selectedAnnotation to post id on press
-              onSelected={() => setSelectedAnnotation(post.id)}
-              // Clear selectedAnnotation on callout close
-              onDeselected={() => setSelectedAnnotation(null)}
+              allowOverlap={true}
             >
-              {/* Post Thumbnail */}
-              <View className="w-10 h-10 rounded-lg overflow-hidden border-2 border-fuchsia-400">
+              <TouchableOpacity
+                onPress={() => setSelectedAnnotation(post.id)}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  borderWidth: 2,
+                  borderColor: "#e879f9", // fuchsia-400
+                }}
+              >
                 <Image
-                  source={{ uri: post.imageUrl }}
-                  className="w-full h-full"
+                  source={{
+                    uri: post.imageUrl,
+                    cache: "force-cache",
+                    headers: {
+                      Pragma: "no-cache",
+                    },
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                  }}
                   resizeMode="cover"
+                  onError={(e) =>
+                    console.log("Error loading image:", e.nativeEvent.error)
+                  }
                 />
-              </View>
+              </TouchableOpacity>
 
-              <Mapbox.Callout>
+              {selectedAnnotation === post.id && (
                 <View
-                  className="bg-black/90 rounded-lg p-3"
-                  style={{ width: 300 }}
+                  style={{
+                    position: "absolute",
+                    bottom: 70,
+                    backgroundColor: "rgba(0,0,0,0.9)",
+                    padding: 12,
+                    borderRadius: 8,
+                    width: 300,
+                  }}
                 >
                   <Image
                     source={{ uri: post.imageUrl }}
                     style={{ width: "100%", aspectRatio: 1 }}
                     resizeMode="cover"
-                    className="rounded-lg"
                   />
-                  <View className="mt-2">
-                    <Text className="text-white font-medium text-base">
+                  <View style={{ marginTop: 8 }}>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontWeight: "500",
+                        fontSize: 16,
+                      }}
+                    >
                       {post.username}
                     </Text>
                     {post.caption && (
-                      <Text className="text-gray-300 mt-1">{post.caption}</Text>
+                      <Text style={{ color: "#d1d5db", marginTop: 4 }}>
+                        {post.caption}
+                      </Text>
                     )}
-                    <Text className="text-gray-400 text-xs mt-1">
+                    <Text
+                      style={{ color: "#9ca3af", fontSize: 12, marginTop: 4 }}
+                    >
                       {post.createdAt?.toDate().toLocaleString()}
                     </Text>
                   </View>
                 </View>
-              </Mapbox.Callout>
-            </Mapbox.PointAnnotation>
+              )}
+            </Mapbox.MarkerView>
           ))}
 
         {/* Friend Markers - only show if viewMode is 'all' or 'friends' */}
         {viewMode === "friends" &&
           friends.map((friend) =>
-            friend.location && friend.settings?.locationSharing ? (
+            (friend.location && friend.settings?.locationSharing) ? (
               <Mapbox.PointAnnotation
                 key={friend.uid}
                 id={friend.uid}
