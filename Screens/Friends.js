@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import defaultAvatar from "../assets/default-avatar.png";
 import { MaterialIcons } from "@expo/vector-icons";
+import debounce from "lodash/debounce";
 
 const Friends = () => {
   const { user } = useUser();
@@ -25,32 +26,93 @@ const Friends = () => {
   const [searchResult, setSearchResult] = useState(null);
   const [searching, setSearching] = useState(false);
   const [searchResultAvatar, setSearchResultAvatar] = useState(null);
+  const [avatarCache, setAvatarCache] = useState({});
 
-  // Add helper function to load avatar URL
   const loadSearchResultAvatar = async (avatarPath) => {
     try {
+      if (!avatarPath) {
+        setSearchResultAvatar(null);
+        return;
+      }
       const url = await userService.getImageUrl(avatarPath);
       setSearchResultAvatar(url);
     } catch (error) {
       console.log("Error loading avatar:", error);
+      setSearchResultAvatar(null);
     }
   };
 
   useEffect(() => {
-    // Subscribe to friends collection changes
+    const loadFriendProfiles = async (friendsData) => {
+      try {
+        const friendProfiles = await Promise.all(
+          friendsData.map(async (friend) => {
+            try {
+              const friendId = friend.users.find((id) => id !== user.uid);
+
+              // Check avatar cache first
+              if (avatarCache[friendId]) {
+                return {
+                  ...friend,
+                  profile: {
+                    ...friend.profile,
+                    avatarUrl: avatarCache[friendId],
+                  },
+                };
+              }
+
+              const profile = await userService.getUserProfile(friendId);
+
+              if (profile.avatarUrl) {
+                try {
+                  const avatarUrl = await userService.getImageUrl(
+                    profile.avatarUrl
+                  );
+                  // Update cache
+                  setAvatarCache((prev) => ({
+                    ...prev,
+                    [friendId]: avatarUrl,
+                  }));
+                  profile.avatarUrl = avatarUrl;
+                } catch (error) {
+                  console.log(
+                    "Error loading avatar for friend:",
+                    friendId,
+                    error
+                  );
+                  profile.avatarUrl = null;
+                }
+              }
+
+              return { ...friend, profile };
+            } catch (error) {
+              console.log("Error loading friend profile:", error);
+              return {
+                ...friend,
+                profile: { username: "Unknown", avatarUrl: null },
+              };
+            }
+          })
+        );
+        setFriends(friendProfiles);
+      } catch (error) {
+        console.log("Error processing friends data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const friendsUnsubscribe = query(
       collection(FIREBASE_DB, "friends"),
       where("users", "array-contains", user.uid)
     );
 
-    // Subscribe to pending requests
     const requestsUnsubscribe = query(
       collection(FIREBASE_DB, "friends"),
       where("receiver", "==", user.uid),
       where("status", "==", "pending")
     );
 
-    // Set up realtime listeners
     const unsubscribeFriends = onSnapshot(
       friendsUnsubscribe,
       async (snapshot) => {
@@ -58,17 +120,7 @@ const Friends = () => {
           .filter((doc) => doc.data().status === "accepted")
           .map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        // Load friend profiles
-        const friendProfiles = await Promise.all(
-          friendsData.map(async (friend) => {
-            const friendId = friend.users.find((id) => id !== user.uid);
-            const profile = await userService.getUserProfile(friendId);
-            return { ...friend, profile };
-          })
-        );
-
-        setFriends(friendProfiles);
-        setLoading(false);
+        await loadFriendProfiles(friendsData);
       }
     );
 
@@ -80,11 +132,42 @@ const Friends = () => {
           ...doc.data(),
         }));
 
-        // Load request sender profiles
         const requestProfiles = await Promise.all(
           requestsData.map(async (request) => {
-            const profile = await userService.getUserProfile(request.sender);
-            return { ...request, profile };
+            try {
+              const profile = await userService.getUserProfile(request.sender);
+              if (profile.avatarUrl) {
+                try {
+                  // Check cache first for pending requests
+                  if (avatarCache[request.sender]) {
+                    profile.avatarUrl = avatarCache[request.sender];
+                  } else {
+                    const avatarUrl = await userService.getImageUrl(
+                      profile.avatarUrl
+                    );
+                    setAvatarCache((prev) => ({
+                      ...prev,
+                      [request.sender]: avatarUrl,
+                    }));
+                    profile.avatarUrl = avatarUrl;
+                  }
+                } catch (error) {
+                  console.log(
+                    "Error loading avatar for request:",
+                    request.sender,
+                    error
+                  );
+                  profile.avatarUrl = null;
+                }
+              }
+              return { ...request, profile };
+            } catch (error) {
+              console.log("Error loading request profile:", error);
+              return {
+                ...request,
+                profile: { username: "Unknown", avatarUrl: null },
+              };
+            }
           })
         );
 
@@ -92,64 +175,94 @@ const Friends = () => {
       }
     );
 
-    // Clean up subscriptions on unmount
     return () => {
       unsubscribeFriends();
       unsubscribeRequests();
     };
   }, [user.uid]);
 
-  const searchUser = async (email) => {
-    setSearchResultAvatar(null);
-    if (!email) {
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(async (email) => {
+        if (!email) {
+          setSearchResult(null);
+          return;
+        }
+
+        setSearching(true);
+        try {
+          const result = await userService.findUserByEmail(email);
+          if (!result) {
+            setSearchResult({ error: "User not found" });
+            return;
+          }
+          if (result?.uid === user.uid) {
+            setSearchResult({ error: "You can't add yourself!" });
+            return;
+          }
+
+          if (result.avatarUrl) {
+            try {
+              // Check cache first for search results
+              if (avatarCache[result.uid]) {
+                result.avatarUrl = avatarCache[result.uid];
+                setSearchResultAvatar(avatarCache[result.uid]);
+              } else {
+                const avatarUrl = await userService.getImageUrl(
+                  result.avatarUrl
+                );
+                setAvatarCache((prev) => ({
+                  ...prev,
+                  [result.uid]: avatarUrl,
+                }));
+                result.avatarUrl = avatarUrl;
+                await loadSearchResultAvatar(result.avatarUrl);
+              }
+            } catch (error) {
+              console.log("Error loading search result avatar:", error);
+              result.avatarUrl = null;
+            }
+          }
+
+          if (user.friends?.includes(result?.uid)) {
+            setSearchResult({
+              user: result,
+              alreadyFriend: true,
+            });
+          } else {
+            const pending = pendingRequests.find((r) =>
+              r.users.includes(result?.uid)
+            );
+            setSearchResult({
+              user: result,
+              alreadyFriend: false,
+              pendingRequest: !!pending,
+            });
+          }
+        } catch (error) {
+          console.error("Search error:", error);
+          setSearchResult({ error: "Failed to search user" });
+        } finally {
+          setSearching(false);
+        }
+      }, 500),
+    [user.uid, pendingRequests, avatarCache]
+  );
+
+  const handleSearchChange = (text) => {
+    setSearchEmail(text);
+    if (!text) {
       setSearchResult(null);
       return;
     }
-
-    setSearching(true);
-    try {
-      const result = await userService.findUserByEmail(email);
-      if (!result) {
-        setSearchResult({ error: "User not found" });
-        return;
-      }
-      if (result?.uid === user.uid) {
-        setSearchResult({ error: "You can't add yourself!" });
-        return;
-      } else if (user.friends?.includes(result?.uid)) {
-        // Get avatar URL before setting result
-        if (result.avatarUrl) {
-          const avatarUrl = await userService.getImageUrl(result.avatarUrl);
-          result.avatarUrl = avatarUrl;
-          await loadSearchResultAvatar(result.avatarUrl); // Load avatar here
-        }
-        setSearchResult({
-          user: result,
-          alreadyFriend: true,
-        });
-      } else {
-        const pending = pendingRequests.find((r) =>
-          r.users.includes(result?.uid)
-        );
-        // Get avatar URL before setting result
-        if (result.avatarUrl) {
-          const avatarUrl = await userService.getImageUrl(result.avatarUrl);
-          result.avatarUrl = avatarUrl;
-          await loadSearchResultAvatar(result.avatarUrl); // Load avatar here
-        }
-        setSearchResult({
-          user: result,
-          alreadyFriend: false,
-          pendingRequest: !!pending,
-        });
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResult({ error: "Failed to search user" });
-    } finally {
-      setSearching(false);
-    }
+    debouncedSearch(text);
   };
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   const handleSendRequest = async (receiverId) => {
     try {
@@ -193,62 +306,67 @@ const Friends = () => {
     }
   };
 
-  const renderFriend = ({ item }) => (
-    <View className="bg-gray-800 rounded-lg mb-2">
-      <TouchableOpacity
-        className="flex-row items-center justify-between p-4"
-        onPress={() => {
-          /* Navigate to friend profile */
-        }}
-      >
-        <View className="flex-row items-center">
-          <Image
-            source={
-              item.profile?.avatarUrl
-                ? { uri: item.profile.avatarUrl }
-                : defaultAvatar
-            }
-            defaultSource={defaultAvatar}
-            onError={() =>
-              console.log(`Failed to load avatar for ${item.profile?.username}`)
-            }
-            className="w-12 h-12 rounded-full mr-4"
-            resizeMode="cover"
-          />
-          <View>
-            <Text className="text-white font-medium">
-              {item.profile.username}
-            </Text>
-            <Text className="text-gray-400">Online status</Text>
-          </View>
-        </View>
+  const FriendItem = ({ item }) => {
+    const [hasError, setHasError] = useState(false);
+    const friendId = item.users.find((id) => id !== user.uid);
+    const avatarUrl =
+      !hasError && (avatarCache[friendId] || item.profile?.avatarUrl);
 
-        {/* Circular Remove Friend Button */}
+    return (
+      <View className="bg-gray-800 rounded-lg mb-2">
         <TouchableOpacity
-          className="h-10 w-10 bg-red-500 rounded-full items-center justify-center"
+          className="flex-row items-center justify-between p-4"
           onPress={() => {
-            Alert.alert(
-              "Remove Friend",
-              `Are you sure you want to remove ${item.profile.username} from your friends?`,
-              [
-                {
-                  text: "Cancel",
-                  style: "cancel",
-                },
-                {
-                  text: "Remove",
-                  onPress: () => handleRemoveFriend(item.profile.uid),
-                  style: "destructive",
-                },
-              ]
-            );
+            /* Navigate to friend profile */
           }}
         >
-          <Text className="text-white text-xl">×</Text>
+          <View className="flex-row items-center">
+            <Image
+              source={avatarUrl ? { uri: avatarUrl } : defaultAvatar}
+              defaultSource={defaultAvatar}
+              onError={() => {
+                setHasError(true);
+                console.log(
+                  `Failed to load avatar for ${item.profile?.username}`
+                );
+              }}
+              className="w-12 h-12 rounded-full mr-4"
+              resizeMode="cover"
+            />
+            <View>
+              <Text className="text-white font-medium">
+                {item.profile?.username || "Unknown"}
+              </Text>
+              <Text className="text-gray-400">Online status</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            className="h-10 w-10 bg-red-500 rounded-full items-center justify-center"
+            onPress={() => {
+              Alert.alert(
+                "Remove Friend",
+                `Are you sure you want to remove ${item.profile.username} from your friends?`,
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel",
+                  },
+                  {
+                    text: "Remove",
+                    onPress: () => handleRemoveFriend(item.profile.uid),
+                    style: "destructive",
+                  },
+                ]
+              );
+            }}
+          >
+            <Text className="text-white text-xl">×</Text>
+          </TouchableOpacity>
         </TouchableOpacity>
-      </TouchableOpacity>
-    </View>
-  );
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -260,13 +378,12 @@ const Friends = () => {
 
   return (
     <View className="flex-1 bg-black p-4">
-      {/* Search Section */}
       <View className="mb-4">
         <View className="flex-row items-center">
           <Input
             placeholder="Search by email"
             value={searchEmail}
-            onChangeText={setSearchEmail}
+            onChangeText={handleSearchChange}
             inputStyle={{ color: "white" }}
             placeholderTextColor="gray"
             containerStyle={{ flex: 1, paddingHorizontal: 0, marginRight: 8 }}
@@ -274,7 +391,7 @@ const Friends = () => {
             keyboardType="email-address"
           />
           <TouchableOpacity
-            onPress={() => searchEmail && searchUser(searchEmail)}
+            onPress={() => searchEmail && debouncedSearch(searchEmail)}
             className="bg-gray-800 p-3 rounded-full"
           >
             <MaterialIcons name="search" size={24} color="white" />
@@ -299,11 +416,12 @@ const Friends = () => {
                         : defaultAvatar
                     }
                     defaultSource={defaultAvatar}
-                    onError={() =>
+                    onError={() => {
                       console.log(
                         `Failed to load avatar for ${searchResult.user?.username}`
-                      )
-                    }
+                      );
+                      setSearchResultAvatar(null);
+                    }}
                     className="w-12 h-12 rounded-full mr-4"
                     resizeMode="cover"
                   />
@@ -332,14 +450,11 @@ const Friends = () => {
                   </TouchableOpacity>
                 )}
               </View>
-            ) : (
-              <Text className="text-gray-400">No user found</Text>
-            )}
+            ) : null}
           </View>
         )}
       </View>
 
-      {/* Pending Requests Section */}
       {pendingRequests.length > 0 && (
         <View className="mb-4">
           <Text className="text-white font-bold mb-2">Friend Requests</Text>
@@ -347,14 +462,31 @@ const Friends = () => {
             <View key={request.id} className="bg-gray-800 p-4 rounded-lg mb-2">
               <View className="flex-row items-center mb-3">
                 <Image
-                  source={{ uri: request.profile.avatarUrl }}
+                  source={
+                    avatarCache[request.sender] || request.profile?.avatarUrl
+                      ? {
+                          uri:
+                            avatarCache[request.sender] ||
+                            request.profile.avatarUrl,
+                        }
+                      : defaultAvatar
+                  }
+                  defaultSource={defaultAvatar}
+                  onError={() => {
+                    console.log(
+                      `Failed to load avatar for ${request.profile?.username}`
+                    );
+                  }}
                   className="w-12 h-12 rounded-full mr-4"
+                  resizeMode="cover"
                 />
                 <View>
                   <Text className="text-white font-medium">
-                    {request.profile.username}
+                    {request.profile?.username || "Unknown"}
                   </Text>
-                  <Text className="text-gray-400">{request.profile.email}</Text>
+                  <Text className="text-gray-400">
+                    {request.profile?.email}
+                  </Text>
                 </View>
               </View>
 
@@ -377,11 +509,10 @@ const Friends = () => {
         </View>
       )}
 
-      {/* Friends List */}
       <Text className="text-white font-bold mb-2">Friends</Text>
       <FlatList
         data={friends}
-        renderItem={renderFriend}
+        renderItem={({ item }) => <FriendItem item={item} />}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <Text className="text-gray-400 text-center">No friends yet</Text>
