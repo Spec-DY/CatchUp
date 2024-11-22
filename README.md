@@ -151,8 +151,7 @@ createdAt: timestamp,
 ## Note
 ### After Switching to Unmanaged Expo
 - **Expo Go** can no longer be used. You must use an emulator or connect your device via USB.
-- Alternatively, you can manually install the APK after prebuild:  
-  `android\app\build\outputs\apk\debug\app-debug.apk`.
+- Please follow below setup instructions.
 
 ---
 
@@ -199,3 +198,6 @@ npx expo run:android
 ```bash
 npx expo run:ios
 ```
+#### Manual Install
+- Alternatively, you can manually install the APK after prebuild:  
+  `android\app\build\outputs\apk\debug\app-debug.apk`.
