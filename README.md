@@ -173,7 +173,7 @@ Update the `app.json` file by replacing `Mapbox Secret API key` with the actual 
 ```
 ### Step 2: Update the .env File
 
-Add the required keys for Mapbox and OpenWeather in the .env file, in addition to the Firebase API keys:
+Add the required keys for Mapbox (start with `pk.`) and OpenWeather in the .env file, in addition to the Firebase API keys:
 ```bash
 EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN="Mapbox Public API key"
 EXPO_PUBLIC_OPEN_WEATHER_API=your_open_weather_key
