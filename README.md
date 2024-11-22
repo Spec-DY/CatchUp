@@ -195,3 +195,7 @@ npx expo prebuild --clean
 ```bash
 npx expo run:android
 ```
+**OR**
+```bash
+npx expo run:ios
+```
