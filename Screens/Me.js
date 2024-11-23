@@ -131,13 +131,6 @@ const Me = () => {
           }
           onPress={() => Alert.alert("Coming soon", "Notification settings")}
         />
-
-        {/* Friends */}
-        <SettingItem
-          title="Friends"
-          subtitle={`${user?.friends?.length || 0} friends`}
-          onPress={() => Alert.alert("Coming soon", "Friends list")}
-        />
       </View>
 
       {/* Logout Button */}
