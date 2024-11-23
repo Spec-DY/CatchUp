@@ -1,4 +1,3 @@
-// Screens/Me.js
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useUser } from "../Context/UserContext";
@@ -6,6 +5,7 @@ import { Button } from "@rneui/base";
 import GenderOption from "../Components/GenderOption";
 import { useNavigation } from "@react-navigation/native";
 import { userService } from "../firebase/services/userService";
+import EditProfile from "./EditProfile";
 
 const SettingItem = ({ title, value, subtitle, onPress }) => (
   <TouchableOpacity
@@ -22,20 +22,25 @@ const Me = () => {
   const { user, signOut } = useUser();
   const navigation = useNavigation();
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // console.log(user);
-
-  // Fetch avatar URL when component mounts or avatarUrl changes
   useEffect(() => {
-    const loadAvatarUrl = async () => {
-      if (user?.avatarUrl) {
+    loadAvatarUrl();
+  }, [user?.avatarUrl, refreshKey]);
+
+  const loadAvatarUrl = async () => {
+    if (user?.avatarUrl) {
+      try {
         const url = await userService.getImageUrl(user.avatarUrl);
         setAvatarUrl(url);
+      } catch (error) {
+        console.error("Error loading avatar:", error);
       }
-    };
-
-    loadAvatarUrl();
-  }, [user?.avatarUrl]);
+    } else {
+      setAvatarUrl(null);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -47,7 +52,11 @@ const Me = () => {
   };
 
   const handleEditProfile = () => {
-    Alert.alert("Coming soon", "Edit profile feature");
+    setEditModalVisible(true);
+  };
+
+  const handleEditComplete = () => {
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleLocationSharing = () => {
@@ -56,6 +65,12 @@ const Me = () => {
 
   return (
     <View className="flex-1 bg-black">
+      <EditProfile
+        isVisible={isEditModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onUpdate={handleEditComplete}
+      />
+
       {/* Profile Header */}
       <View className="items-center p-6 border-b border-gray-800">
         {/* Avatar */}
