@@ -4,7 +4,7 @@ import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import { Image } from "react-native";
 import { postService } from "../firebase/services/postService";
@@ -232,39 +232,82 @@ const Map = () => {
       where("status", "==", "accepted")
     );
 
+    // create an array to store all the unsubscribe functions
+    const unsubscribers = [];
+
     const unsubscribeFriends = onSnapshot(friendsQuery, async (snapshot) => {
       const friendsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      // Get friend profiles and locations
-      const friendProfiles = await Promise.all(
-        friendsData.map(async (friend) => {
-          const friendId = friend.users.find((id) => id !== user.uid);
-          const profile = await userService.getUserProfile(friendId);
+      try {
+        // Clear all previous user settings subscriptions
+        unsubscribers.forEach((unsub) => unsub());
+        unsubscribers.length = 0;
 
-          let avatarUrl = null;
-          if (profile.avatarUrl) {
-            try {
-              avatarUrl = await userService.getImageUrl(profile.avatarUrl);
-            } catch (error) {
-              console.log("Error loading avatar:", error);
+        // Fetch profiles for each friend
+        const friendProfiles = await Promise.all(
+          friendsData.map(async (friend) => {
+            const friendId = friend.users.find((id) => id !== user.uid);
+
+            const profile = await userService.getUserProfile(friendId);
+
+            // Subscribe to user settings
+            const settingsUnsub = onSnapshot(
+              doc(FIREBASE_DB, "users", friendId),
+              async (userDoc) => {
+                const updatedSettings = userDoc.data()?.settings;
+                if (updatedSettings) {
+                  // Update the friend's settings in the friends list
+                  setFriends((currentFriends) =>
+                    currentFriends.map((f) =>
+                      f.uid === friendId
+                        ? { ...f, settings: updatedSettings }
+                        : f
+                    )
+                  );
+                }
+              }
+            );
+
+            unsubscribers.push(settingsUnsub);
+
+            let avatarUrl = null;
+            if (profile.avatarUrl) {
+              try {
+                avatarUrl = await userService.getImageUrl(profile.avatarUrl);
+              } catch (error) {
+                console.log("Error loading avatar:", error);
+              }
             }
-          }
-          return {
-            ...friend,
-            ...profile,
-            profile: {
-              username: profile.username,
-              avatarUrl: avatarUrl,
-            },
-          };
-        })
-      );
 
-      setFriends(friendProfiles);
+            return {
+              ...friend,
+              ...profile,
+              profile: {
+                username: profile.username,
+                avatarUrl: avatarUrl,
+              },
+            };
+          })
+        );
+
+        setFriends(friendProfiles);
+      } catch (error) {
+        console.error("Error fetching friend profiles:", error);
+      }
     });
+
+    // Cleanup
+    return () => {
+      if (locationSubscriber) {
+        locationSubscriber.remove();
+      }
+      unsubscribeFriends();
+      // Unsubscribe from all user settings subscriptions
+      unsubscribers.forEach((unsub) => unsub());
+    };
 
     return () => {
       if (locationSubscriber) {
