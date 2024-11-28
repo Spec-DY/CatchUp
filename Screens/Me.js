@@ -34,7 +34,7 @@ const SettingItem = ({ title, subtitle, onPress, toggleValue, onToggle }) => {
           <Switch
             value={toggleValue}
             onValueChange={onToggle}
-            trackColor={{ false: "#767577", true: "#3b82f6" }}
+            trackColor={{ false: "#767577", true: "#45cb59" }}
             thumbColor={toggleValue ? "#ffffff" : "#f4f3f4"}
             style={{ marginLeft: 10 }}
           />

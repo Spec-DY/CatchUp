@@ -35,8 +35,8 @@ const styles = {
     backgroundColor: selected ? COLORS.blue : COLORS.gray,
   }),
   innerCircle: {
-    width: 64,
-    height: 64,
+    width: 60,
+    height: 60,
     borderRadius: 9999,
     backgroundColor: COLORS.dark,
     alignItems: "center",
