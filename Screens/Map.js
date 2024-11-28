@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Platform, Alert } from "react-native";
+import { View, Text, Platform, Alert, ActivityIndicator } from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
@@ -36,6 +36,8 @@ const Map = () => {
   // state for view mode
   const [viewMode, setViewMode] = useState("friends"); // 'posts', or 'friends'
 
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+
   const isSimulator = () => {
     console.log("Device.isDevice:", Device.isDevice);
     return !Device.isDevice;
@@ -44,6 +46,8 @@ const Map = () => {
   // Add camera button handler
   const handleNewPost = async () => {
     try {
+      setIsCreatingPost(true);
+
       if (isSimulator()) {
         Alert.alert(
           "Simulator Detected",
@@ -52,30 +56,73 @@ const Map = () => {
         return;
       }
 
-      // Request camera permission
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission needed", "Camera permission is required");
         return;
       }
 
-      // Take photo
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 0.7,
+        base64: false,
+        exif: false,
+        allowsEditing: true,
+        presentationStyle: "fullScreen",
       });
 
-      if (!result.canceled) {
-        // Create post with current location
-        await postService.createPost(user.uid, {
-          imageUri: result.assets[0].uri,
-          location: location,
-          caption: "", // Could add caption input
+      console.log("Camera result:", result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+
+        if (!asset.uri) {
+          throw new Error("No image URI available");
+        }
+
+        const uriLower = asset.uri.toLowerCase();
+        if (
+          !uriLower.endsWith(".jpg") &&
+          !uriLower.endsWith(".jpeg") &&
+          !uriLower.endsWith(".png")
+        ) {
+          throw new Error("Invalid image format");
+        }
+
+        if (!location) {
+          throw new Error("Location not available");
+        }
+
+        const locationData = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          timestamp: new Date().toISOString(),
+        };
+
+        console.log("Submitting post with data:", {
+          imageUri: asset.uri,
+          location: locationData,
         });
+
+        await postService.createPost(user.uid, {
+          imageUri: asset.uri,
+          location: locationData,
+          caption: "",
+          createdAt: new Date().toISOString(),
+        });
+
+        Alert.alert("Success", "Post created successfully!");
+      } else {
+        console.log("Camera cancelled or no image selected");
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      Alert.alert("Error", "Failed to create post");
+      Alert.alert(
+        "Error",
+        `Failed to create post: ${error.message || "Unknown error"}`
+      );
+    } finally {
+      setIsCreatingPost(false);
     }
   };
 
@@ -277,7 +324,9 @@ const Map = () => {
             // If friends exist, center on first friend, otherwise center on user
             friends[0]?.location
               ? [friends[0].location.longitude, friends[0].location.latitude]
-              : [location.longitude, location.latitude]
+              : location
+              ? [location.longitude, location.latitude]
+              : [0, 0]
           }
           followUserLocation={false}
           followZoomLevel={14}
@@ -307,13 +356,15 @@ const Map = () => {
                 }}
               >
                 <Image
-                  source={{
-                    uri: post.imageUrl,
-                    cache: "force-cache",
-                    headers: {
-                      Pragma: "no-cache",
-                    },
-                  }}
+                  source={
+                    post.imageUrl
+                      ? {
+                          uri: post.imageUrl,
+                          cache: "force-cache",
+                          headers: { Pragma: "no-cache" },
+                        }
+                      : require("../assets/default-avatar.png")
+                  }
                   style={{
                     width: "100%",
                     height: "100%",
@@ -481,6 +532,12 @@ const Map = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      {isCreatingPost && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center">
+          <ActivityIndicator size="large" color="#e879f9" />
+        </View>
+      )}
     </View>
   );
 };
