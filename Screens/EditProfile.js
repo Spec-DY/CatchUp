@@ -13,6 +13,7 @@ import {
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
 import * as ImagePicker from "expo-image-picker";
+import GenderOption from "../Components/GenderOption";
 
 const EditProfile = ({ isVisible, onClose, onUpdate }) => {
   const { user, setUser } = useUser();
@@ -20,6 +21,7 @@ const EditProfile = ({ isVisible, onClose, onUpdate }) => {
   const [image, setImage] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [gender, setGender] = useState(user?.gender);
 
   useEffect(() => {
     const loadAvatarUrl = async () => {
@@ -71,6 +73,7 @@ const EditProfile = ({ isVisible, onClose, onUpdate }) => {
       const updateData = {
         username,
         avatarUrl: profileImageUrl,
+        gender,
       };
 
       await userService.updateUserProfile(user.uid, updateData);
@@ -130,6 +133,25 @@ const EditProfile = ({ isVisible, onClose, onUpdate }) => {
           <Text className="text-gray-400 text-base mb-2">Email</Text>
           <View className="bg-gray-800 p-4 rounded-lg">
             <Text className="text-gray-500 text-lg">{user?.email}</Text>
+          </View>
+        </View>
+
+        {/* Gender Section */}
+        <View className="px-4 mt-auto mb-8">
+          <Text className="text-gray-400 text-base mb-2">Gender</Text>
+          <View className="flex-row justify-around mb-6">
+            <GenderOption
+              type="male"
+              icon="👨🏻"
+              selected={gender === "male"}
+              onSelect={setGender}
+            />
+            <GenderOption
+              type="female"
+              icon="👩🏻"
+              selected={gender === "female"}
+              onSelect={setGender}
+            />
           </View>
         </View>
 
