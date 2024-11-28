@@ -346,6 +346,42 @@ const Map = () => {
             >
               <TouchableOpacity
                 onPress={() => setSelectedAnnotation(post.id)}
+                onLongPress={() => {
+                  // can only delete own posts
+                  if (post.isOwnPost) {
+                    Alert.alert(
+                      "Delete Post",
+                      "Are you sure you want to delete this post?",
+                      [
+                        {
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: async () => {
+                            try {
+                              await postService.deletePost(
+                                post.id,
+                                post.imageUrl
+                              );
+                              setSelectedAnnotation(null);
+                              Alert.alert(
+                                "Success",
+                                "Post deleted successfully"
+                              );
+                            } catch (error) {
+                              console.error("Error deleting post:", error);
+                              Alert.alert("Error", "Failed to delete post");
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }
+                }}
+                delayLongPress={2000} // long press of 2 seconds
                 style={{
                   width: 64,
                   height: 64,

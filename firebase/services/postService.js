@@ -7,8 +7,15 @@ import {
   serverTimestamp,
   getDocs,
   GeoPoint,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import * as FileSystem from "expo-file-system";
 
 export const postService = {
@@ -74,6 +81,19 @@ export const postService = {
       }));
     } catch (error) {
       console.error("Error getting posts:", error);
+      throw error;
+    }
+  },
+
+  async deletePost(postId, imageUrl) {
+    try {
+      await deleteDoc(doc(FIREBASE_DB, "posts", postId));
+      const storageRef = ref(FIREBASE_STORAGE, imageUrl);
+      await deleteObject(storageRef);
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting post:", error);
       throw error;
     }
   },
