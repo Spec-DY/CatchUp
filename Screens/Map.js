@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Platform, Alert } from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
@@ -11,6 +11,7 @@ import { postService } from "../firebase/services/postService";
 import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import Constants from "expo-constants";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -35,9 +36,24 @@ const Map = () => {
   // state for view mode
   const [viewMode, setViewMode] = useState("friends"); // 'posts', or 'friends'
 
+  const isSimulator = () => {
+    if (Platform.OS === "ios" && !Constants.isDevice) {
+      return true;
+    }
+    return false;
+  };
+
   // Add camera button handler
   const handleNewPost = async () => {
     try {
+      if (isSimulator()) {
+        Alert.alert(
+          "Simulator Detected",
+          "Camera is not available on iOS Simulator. Please use a real device."
+        );
+        return;
+      }
+
       // Request camera permission
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
