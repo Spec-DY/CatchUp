@@ -11,7 +11,7 @@ import { postService } from "../firebase/services/postService";
 import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import Constants from "expo-constants";
+import * as Device from "expo-device";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -37,10 +37,8 @@ const Map = () => {
   const [viewMode, setViewMode] = useState("friends"); // 'posts', or 'friends'
 
   const isSimulator = () => {
-    if (Platform.OS === "ios" && !Constants.isDevice) {
-      return true;
-    }
-    return false;
+    console.log("Device.isDevice:", Device.isDevice);
+    return !Device.isDevice;
   };
 
   // Add camera button handler
