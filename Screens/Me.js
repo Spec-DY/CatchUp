@@ -1,5 +1,12 @@
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  Switch,
+} from "react-native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
 import GenderOption from "../Components/GenderOption";
@@ -7,19 +14,38 @@ import { useNavigation } from "@react-navigation/native";
 import { userService } from "../firebase/services/userService";
 import EditProfile from "./EditProfile";
 
-const SettingItem = ({ title, value, subtitle, onPress }) => (
-  <TouchableOpacity
-    className="mb-4 bg-gray-800 p-4 rounded-lg"
-    onPress={onPress}
-  >
-    <Text className="text-white font-medium mb-1">{title}</Text>
-    {value && <Text className="text-white text-lg mb-1">{value}</Text>}
-    {subtitle && <Text className="text-gray-400 text-sm">{subtitle}</Text>}
-  </TouchableOpacity>
-);
+const SettingItem = ({ title, subtitle, onPress, toggleValue, onToggle }) => {
+  return (
+    <TouchableOpacity
+      className={`mb-4 bg-gray-800 p-4 rounded-lg ${
+        onPress ? "active:opacity-80" : ""
+      }`}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View className="flex-row justify-between items-center">
+        <View>
+          <Text className="text-white font-medium mb-1">{title}</Text>
+          {subtitle && (
+            <Text className="text-gray-400 text-sm">{subtitle}</Text>
+          )}
+        </View>
+        {typeof toggleValue !== "undefined" && (
+          <Switch
+            value={toggleValue}
+            onValueChange={onToggle}
+            trackColor={{ false: "#767577", true: "#3b82f6" }}
+            thumbColor={toggleValue ? "#ffffff" : "#f4f3f4"}
+            style={{ marginLeft: 10 }}
+          />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const Me = () => {
-  const { user, signOut } = useUser();
+  const { user, setUser, signOut } = useUser();
   const navigation = useNavigation();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
@@ -59,8 +85,38 @@ const Me = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const handleLocationSharing = () => {
-    Alert.alert("Coming soon", "Location sharing toggle");
+  const toggleLocationSharing = async (value) => {
+    try {
+      const updatedSettings = {
+        ...user.settings,
+        locationSharing: value,
+      };
+      await userService.updateUserSettings(user.uid, updatedSettings);
+      setUser((prev) => ({
+        ...prev,
+        settings: updatedSettings,
+      }));
+    } catch (error) {
+      console.error("Failed to update location sharing:", error);
+      Alert.alert("Error", "Failed to update location sharing");
+    }
+  };
+
+  const toggleNotifications = async (value) => {
+    try {
+      const updatedSettings = {
+        ...user.settings,
+        notifications: value,
+      };
+      await userService.updateUserSettings(user.uid, updatedSettings);
+      setUser((prev) => ({
+        ...prev,
+        settings: updatedSettings,
+      }));
+    } catch (error) {
+      console.error("Failed to update notifications:", error);
+      Alert.alert("Error", "Failed to update notifications");
+    }
   };
 
   return (
@@ -73,7 +129,6 @@ const Me = () => {
 
       {/* Profile Header */}
       <View className="items-center p-6 border-b border-gray-800">
-        {/* Avatar */}
         <TouchableOpacity className="mb-4" onPress={() => {}} disabled={true}>
           <Image
             source={
@@ -84,14 +139,10 @@ const Me = () => {
             className="w-24 h-24 rounded-full"
           />
         </TouchableOpacity>
-
-        {/* User Info */}
         <Text className="text-2xl font-bold text-white mb-2">
           {user?.username || "User"}
         </Text>
         <Text className="text-gray-400 mb-4">{user?.email}</Text>
-
-        {/* Gender */}
         <GenderOption
           type={user?.gender}
           icon={user?.gender === "male" ? "👨🏻" : "👩🏻"}
@@ -103,7 +154,6 @@ const Me = () => {
 
       {/* Settings List */}
       <View className="p-6">
-        {/* Edit Profile */}
         <SettingItem
           title="Edit Profile"
           subtitle="Change your username or photo"
@@ -118,7 +168,8 @@ const Me = () => {
               ? "Your location is visible to friends"
               : "Your location is hidden"
           }
-          onPress={handleLocationSharing}
+          toggleValue={user?.settings?.locationSharing}
+          onToggle={toggleLocationSharing}
         />
 
         {/* Notifications */}
@@ -129,7 +180,8 @@ const Me = () => {
               ? "Notifications are enabled"
               : "Notifications are disabled"
           }
-          onPress={() => Alert.alert("Coming soon", "Notification settings")}
+          toggleValue={user?.settings?.notifications}
+          onToggle={toggleNotifications}
         />
       </View>
 
