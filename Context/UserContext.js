@@ -22,26 +22,34 @@ export const UserProvider = ({ children }) => {
             );
           } else {
             setUser(null);
+            setLoading(false);
           }
         } catch (error) {
           console.error("Auth state change error:", error);
+          setUser(null);
         } finally {
           setLoading(false);
         }
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      setUser(null);
+    };
   }, []);
 
   // sign out user
   const signOut = async () => {
     try {
+      setLoading(true);
       await FIREBASE_AUTH.signOut();
       setUser(null);
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
