@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
+  ScrollView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
@@ -153,37 +154,46 @@ const Me = () => {
       </View>
 
       {/* Settings List */}
-      <View className="p-6">
-        <SettingItem
-          title="Edit Profile"
-          subtitle="Change your username or photo"
-          onPress={handleEditProfile}
-        />
+      <ScrollView className="flex-1">
+        <View className="p-6">
+          <SettingItem
+            title="Edit Profile"
+            subtitle="Change your username or photo"
+            onPress={handleEditProfile}
+          />
 
-        {/* Location Sharing */}
-        <SettingItem
-          title="Location Sharing"
-          subtitle={
-            user?.settings?.locationSharing
-              ? "Your location is visible to friends"
-              : "Your location is hidden"
-          }
-          toggleValue={user?.settings?.locationSharing}
-          onToggle={toggleLocationSharing}
-        />
+          {/* Location Sharing */}
+          <SettingItem
+            title="Location Sharing"
+            subtitle={
+              user?.settings?.locationSharing
+                ? "Your location is visible to friends"
+                : "Your location is hidden"
+            }
+            toggleValue={user?.settings?.locationSharing}
+            onToggle={toggleLocationSharing}
+          />
 
-        {/* Notifications */}
-        <SettingItem
-          title="Notifications"
-          subtitle={
-            user?.settings?.notifications
-              ? "Notifications are enabled"
-              : "Notifications are disabled"
-          }
-          toggleValue={user?.settings?.notifications}
-          onToggle={toggleNotifications}
-        />
-      </View>
+          {/* Notifications */}
+          <SettingItem
+            title="Notifications"
+            subtitle={
+              user?.settings?.notifications
+                ? "Notifications are enabled"
+                : "Notifications are disabled"
+            }
+            toggleValue={user?.settings?.notifications}
+            onToggle={toggleNotifications}
+          />
+
+          {/* Notification Scheduler */}
+          <SettingItem
+            title="Set Reminder Notification"
+            subtitle="Schedule a daily reminder to check your location updates"
+            onPress={() => navigation.navigate("NotificationScheduler")}
+          />
+        </View>
+      </ScrollView>
 
       {/* Logout Button */}
       <View className="p-6 mt-auto">

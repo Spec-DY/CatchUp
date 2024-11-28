@@ -9,8 +9,20 @@ import ProfileSetup from "./Screens/ProfileSetup";
 import { UserProvider, useUser } from "./Context/UserContext";
 import BottomTabNavigator from "./Navigation/BottomTabNavigator";
 import { StatusBar } from "expo-status-bar";
+import NotificationScheduler from "./Screens/NotificationScheduler";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 
 const Stack = createStackNavigator();
+
+// Configure notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 // Navigation content based on user authentication state
 const NavigationContent = () => {
@@ -58,11 +70,24 @@ const NavigationContent = () => {
         />
       ) : (
         // logged in route
-        <Stack.Screen
-          name="Tabs"
-          component={BottomTabNavigator}
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen
+            name="Tabs"
+            component={BottomTabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NotificationScheduler"
+            component={NotificationScheduler}
+            options={{
+              headerTitle: "Set Reminder",
+              headerStyle: {
+                backgroundColor: "black",
+              },
+              headerTintColor: "white",
+            }}
+          />
+        </>
       )}
     </Stack.Navigator>
   );
