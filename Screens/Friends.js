@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
 import { friendService } from "../firebase/services/friendService";
@@ -377,8 +378,8 @@ const Friends = () => {
   }
 
   return (
-    <View className="flex-1 bg-black p-4">
-      <View className="mb-4">
+    <SafeAreaView className="flex-1 bg-black">
+      <View className="mb-2 px-6 pt-4">
         <View className="flex-row items-center">
           <Input
             placeholder="Search by email"
@@ -509,16 +510,19 @@ const Friends = () => {
         </View>
       )}
 
-      <Text className="text-white font-bold mb-2">Friends</Text>
-      <FlatList
-        data={friends}
-        renderItem={({ item }) => <FriendItem item={item} />}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <Text className="text-gray-400 text-center">No friends yet</Text>
-        }
-      />
-    </View>
+      <View className="flex-1 px-6">
+        <Text className="text-white font-bold mb-2">Friends</Text>
+        <FlatList
+          data={friends}
+          renderItem={({ item }) => <FriendItem item={item} />}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <Text className="text-gray-400 text-center">No friends yet</Text>
+          }
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 

@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Platform, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Platform,
+  Alert,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
@@ -319,24 +326,31 @@ const Map = () => {
 
   if (errorMsg) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <Text>{errorMsg}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!location) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <Text>Fetching location...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
       {/* Weather and City Info Overlay */}
-      <View className="absolute top-12 left-4 z-10 bg-black/50 rounded-lg p-3">
+      <View
+        className="absolute left-4 z-10 bg-black/50 rounded-lg p-2"
+        style={{ top: 90 }}
+      >
         <Text className="text-white text-lg font-semibold">
           {cityName || "Loading location..."}
         </Text>
@@ -587,7 +601,7 @@ const Map = () => {
           )}
       </MapView>
       {/* Control Buttons */}
-      <View className="absolute top-12 right-4 flex-row space-x-2">
+      <View className="absolute top-20 right-4 flex-row space-x-2">
         {/* View Toggle Button */}
         <TouchableOpacity
           onPress={() =>
@@ -617,7 +631,7 @@ const Map = () => {
           <ActivityIndicator size="large" color="#e879f9" />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, Alert, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Alert,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -91,7 +97,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <View className="flex-1 justify-center bg-black p-4">
+    <SafeAreaView className="flex-1 justify-center bg-black p-4">
       <View className="mb-12">
         <Text className="text-3xl font-bold mb-2 text-white text-center">
           Welcome Back
@@ -194,7 +200,7 @@ const LoginScreen = () => {
         <Text className="text-blue-400">Terms of Service</Text> and{" "}
         <Text className="text-blue-400">Privacy Policy</Text>
       </Text>
-    </View>
+    </SafeAreaView>
   );
 };
 

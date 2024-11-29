@@ -1,7 +1,14 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Notifications from "expo-notifications";
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  SafeAreaView,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const NotificationScheduler = ({ navigation }) => {
@@ -104,7 +111,7 @@ const NotificationScheduler = ({ navigation }) => {
   };
 
   return (
-    <View className="flex-1 bg-black pt-14">
+    <SafeAreaView className="flex-1 bg-black pt-14">
       {/* Custom Header */}
       <View className="px-4 pb-4 border-b border-gray-800">
         <View className="flex-row items-center">
@@ -206,7 +213,7 @@ const NotificationScheduler = ({ navigation }) => {
           )}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

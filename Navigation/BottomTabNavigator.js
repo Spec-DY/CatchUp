@@ -12,6 +12,7 @@ const BottomTabNavigator = () => {
     <Tab.Navigator
       initialRouteName="Map"
       screenOptions={{
+        headerShown: false, // 隐藏所有页面的 header
         tabBarStyle: {
           backgroundColor: "black",
           borderTopWidth: 0,
@@ -20,12 +21,6 @@ const BottomTabNavigator = () => {
         },
         tabBarActiveTintColor: "#3b82f6",
         tabBarInactiveTintColor: "gray",
-        headerStyle: {
-          backgroundColor: "black",
-          borderWidth: 0,
-          shadowOpacity: 0,
-        },
-        headerTintColor: "white",
       }}
     >
       <Tab.Screen

@@ -7,6 +7,7 @@ import {
   Alert,
   Switch,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
@@ -121,7 +122,7 @@ const Me = () => {
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaView className="flex-1 bg-black">
       <EditProfile
         isVisible={isEditModalVisible}
         onClose={() => setEditModalVisible(false)}
@@ -214,7 +215,7 @@ const Me = () => {
           onPress={handleLogout}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
