@@ -140,7 +140,6 @@ const Map = () => {
         `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${OPENWEATHER_API_KEY}`
       );
       const data = await response.json();
-      console.log("Location data:", data);
       setCityName(data[0]?.name || "Unknown Location");
 
       // Get weather data
@@ -148,7 +147,6 @@ const Map = () => {
         `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${OPENWEATHER_API_KEY}`
       );
       const weatherData = await weatherResponse.json();
-      console.log("Weather data:", weatherData);
       setWeather(weatherData);
     } catch (error) {
       console.error("Error fetching location info:", error);
@@ -258,7 +256,16 @@ const Map = () => {
           friendsData.map(async (friend) => {
             const friendId = friend.users.find((id) => id !== user.uid);
 
+            console.log("Processing friend ID:", friendId);
+
             const profile = await userService.getUserProfile(friendId);
+
+            console.log(
+              "Retrieved profile:",
+              profile ? "exists" : "null",
+              "for ID:",
+              friendId
+            );
 
             // Subscribe to user settings
             const settingsUnsub = onSnapshot(
@@ -278,6 +285,12 @@ const Map = () => {
               }
             );
 
+            console.log("Profile data:", {
+              id: friendId,
+              username: profile.username,
+              hasAvatar: !!profile.avatarUrl,
+            });
+
             unsubscribers.push(settingsUnsub);
 
             let avatarUrl = null;
@@ -286,6 +299,14 @@ const Map = () => {
                 avatarUrl = await userService.getImageUrl(profile.avatarUrl);
               } catch (error) {
                 console.log("Error loading avatar:", error);
+              }
+            } else {
+              console.log("No avatar URL found for", profile.username);
+              profile.avatarUrl = require("../assets/default-avatar.png");
+              avatarUrl = require("../assets/default-avatar.png");
+              console.log("Default avatar URL:", profile.avatarUrl);
+              if (profile.avatarUrl) {
+                console.log("Default avatar URL found for", profile.username);
               }
             }
 
@@ -299,6 +320,11 @@ const Map = () => {
             };
           })
         );
+
+        //如果用户被删除了，这里会报错type error avatarURL为null，实则是找不到整个friendprofile，所以加上一个判断
+        if (friendProfiles.length === 0) {
+          setErrorMsg("No friends found");
+        }
 
         setFriends(friendProfiles);
       } catch (error) {
@@ -537,12 +563,10 @@ const Map = () => {
                   }}
                 >
                   <Image
+                    // 这里改为检查string，否则null avatarurl会报错
                     source={
-                      friend.profile?.avatarUrl
-                        ? {
-                            uri: friend.profile.avatarUrl,
-                            cache: "force-cache",
-                          }
+                      typeof friend.profile?.avatarUrl === "string"
+                        ? { uri: friend.profile.avatarUrl }
                         : require("../assets/default-avatar.png")
                     }
                     defaultSource={require("../assets/default-avatar.png")}

@@ -83,6 +83,8 @@ const Friends = () => {
                   );
                   profile.avatarUrl = null;
                 }
+              } else {
+                console.log("No avatarURl found for friend:", friendId);
               }
 
               return { ...friend, profile };
@@ -95,6 +97,7 @@ const Friends = () => {
             }
           })
         );
+
         setFriends(friendProfiles);
       } catch (error) {
         console.log("Error processing friends data:", error);
