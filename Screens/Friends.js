@@ -390,7 +390,12 @@ const Friends = () => {
             onChangeText={handleSearchChange}
             inputStyle={{ color: "white" }}
             placeholderTextColor="gray"
-            containerStyle={{ flex: 1, paddingHorizontal: 0, marginRight: 8 }}
+            containerStyle={{
+              flex: 1,
+              paddingHorizontal: 0,
+              marginRight: 8,
+              marginTop: 25,
+            }}
             autoCapitalize="none"
             keyboardType="email-address"
           />
