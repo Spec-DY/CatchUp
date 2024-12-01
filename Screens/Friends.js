@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
 import { friendService } from "../firebase/services/friendService";
@@ -17,6 +16,7 @@ import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import defaultAvatar from "../assets/default-avatar.png";
 import { MaterialIcons } from "@expo/vector-icons";
 import debounce from "lodash/debounce";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const Friends = () => {
   const { user } = useUser();
@@ -381,7 +381,7 @@ const Friends = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaContainer>
       <View className="mb-2 px-6 pt-4">
         <View className="flex-row items-center">
           <Input
@@ -525,7 +525,7 @@ const Friends = () => {
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       </View>
-    </SafeAreaView>
+    </SafeAreaContainer>
   );
 };
 

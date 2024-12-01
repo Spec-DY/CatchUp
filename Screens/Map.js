@@ -19,6 +19,7 @@ import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -352,26 +353,26 @@ const Map = () => {
 
   if (errorMsg) {
     return (
-      <SafeAreaView
+      <SafeAreaContainer
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <Text>{errorMsg}</Text>
-      </SafeAreaView>
+      </SafeAreaContainer>
     );
   }
 
   if (!location) {
     return (
-      <SafeAreaView
+      <SafeAreaContainer
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <Text>Fetching location...</Text>
-      </SafeAreaView>
+      </SafeAreaContainer>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+    <SafeAreaContainer>
       {/* Weather and City Info Overlay */}
       <View
         className="absolute left-4 z-10 bg-black/50 rounded-lg p-2"
@@ -655,7 +656,7 @@ const Map = () => {
           <ActivityIndicator size="large" color="#e879f9" />
         </View>
       )}
-    </SafeAreaView>
+    </SafeAreaContainer>
   );
 };
 

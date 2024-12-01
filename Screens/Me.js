@@ -7,7 +7,6 @@ import {
   Alert,
   Switch,
   ScrollView,
-  SafeAreaView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
@@ -15,6 +14,7 @@ import GenderOption from "../Components/GenderOption";
 import { useNavigation } from "@react-navigation/native";
 import { userService } from "../firebase/services/userService";
 import EditProfile from "./EditProfile";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const SettingItem = ({ title, subtitle, onPress, toggleValue, onToggle }) => {
   return (
@@ -122,7 +122,7 @@ const Me = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaContainer>
       <EditProfile
         isVisible={isEditModalVisible}
         onClose={() => setEditModalVisible(false)}
@@ -215,7 +215,7 @@ const Me = () => {
           onPress={handleLogout}
         />
       </View>
-    </SafeAreaView>
+    </SafeAreaContainer>
   );
 };
 
