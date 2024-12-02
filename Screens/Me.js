@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useUser } from "../Context/UserContext";
-import { Button } from "@rneui/base";
+import { Button, color } from "@rneui/base";
 import GenderOption from "../Components/GenderOption";
 import { useNavigation } from "@react-navigation/native";
 import { userService } from "../firebase/services/userService";
@@ -212,7 +212,15 @@ const Me = () => {
             fontWeight: "bold",
             fontSize: 16,
           }}
-          onPress={handleLogout}
+          onPress={() =>
+            Alert.alert("Log Out", "Are you sure you want to log out?", [
+              {
+                text: "No",
+                style: "cancel",
+              },
+              { text: "Yes", style: "destructive", onPress: handleLogout },
+            ])
+          }
         />
       </View>
     </SafeAreaContainer>
