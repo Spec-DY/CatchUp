@@ -16,6 +16,7 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - Mapbox Migration
 - Friends screen (add friend system)
 - Map Screen (add friend layer and post layer)
+- User Experience
 
 ## Current Features Implementation
 ### Screenshots
@@ -152,10 +153,10 @@ createdAt: timestamp,
 
 ## Branch Strategy
 
-- `main`: N/A
+- `main`: Mapbox merged
+- `Notification`: User profile management & bug fix
 - `Mapbox`: Fully functional map and friend system
-- `dev`: Our last build based on Google Maps
-
+- `dev`:  Legacy build based on Google Maps
 ## Next Steps
 
 - [x] Implement friend request system
