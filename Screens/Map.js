@@ -5,7 +5,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -13,14 +14,13 @@ import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
 import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
-import { Image } from "react-native";
 import { postService } from "../firebase/services/postService";
-import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
 import SafeAreaContainer from "../Components/SafeAreaContainer";
 import MapInfoWindow from "../Components/MapInfoWindow";
+import WeatherOverlay from "../Components/WeatherOverlay";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -390,20 +390,15 @@ const Map = () => {
     <SafeAreaContainer>
       {/* Weather and City Info Overlay */}
       <View
-        className="absolute left-4 z-10 bg-black/50 rounded-lg p-2"
-        style={{ top: 90 }}
+        className="absolute left-4 z-10 bg-black/40 rounded-lg p-6 text-white"
+        style={{ top: 50 }}
       >
-        <Text className="text-white text-lg font-semibold">
-          {cityName || "Loading location..."}
-        </Text>
-        {weather?.main ? (
-          <Text className="text-white text-sm">
-            {Math.round(weather.main.temp)}°C{" "}
-            {weather.weather?.[0]?.description}
-          </Text>
-        ) : (
-          <Text className="text-white text-sm">Loading weather...</Text>
-        )}
+        <WeatherOverlay
+          cityName={cityName}
+          temperature={weather?.main ? Math.round(weather.main.temp) : null}
+          weatherDescription={weather?.weather?.[0]?.description}
+          isLoading={!weather?.main}
+        />
       </View>
       <MapView
         style={{ flex: 1 }}
@@ -413,6 +408,7 @@ const Map = () => {
         pitch={60}
         logoEnabled={false}
         attributionEnabled={false}
+        scaleBarEnabled={false}
         // Dismiss callout on map press
         onPress={handleMapPress}
         deselectAnnotationOnTap={true}
