@@ -17,6 +17,7 @@ import {
   deleteObject,
 } from "firebase/storage";
 import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native";
 
 export const postService = {
   async createPost(userId, { imageUri, location, caption }) {
@@ -34,11 +35,20 @@ export const postService = {
         throw new Error("Image file does not exist");
       }
 
-      const response = await fetch(
-        `data:image/jpeg;base64,${await FileSystem.readAsStringAsync(imageUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        })}`
-      );
+      let response;
+      if (Platform.OS === "ios") {
+        response = await fetch(
+          `data:image/jpeg;base64,${await FileSystem.readAsStringAsync(
+            imageUri,
+            {
+              encoding: FileSystem.EncodingType.Base64,
+            }
+          )}`
+        );
+      } else {
+        response = await fetch(imageUri);
+      }
+
       const blob = await response.blob();
 
       // Upload image to Firebase Storage
