@@ -20,6 +20,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
 import SafeAreaContainer from "../Components/SafeAreaContainer";
+import MapInfoWindow from "../Components/MapInfoWindow";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -45,6 +46,27 @@ const Map = () => {
   const [viewMode, setViewMode] = useState("friends"); // 'posts', or 'friends'
 
   const [isCreatingPost, setIsCreatingPost] = useState(false);
+  // Add new state to track selected item and type
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
+  const handlePostPress = (post) => {
+    setSelectedAnnotation(post.id);
+    setSelectedItem(post);
+    setSelectedType("post");
+  };
+
+  const handleFriendPress = (friend) => {
+    setSelectedAnnotation(friend.uid);
+    setSelectedItem(friend);
+    setSelectedType("friend");
+  };
+
+  // Update map press handler
+  const handleMapPress = () => {
+    setSelectedAnnotation(null);
+    setSelectedItem(null);
+    setSelectedType(null);
+  };
 
   const isSimulator = () => {
     console.log("Device.isDevice:", Device.isDevice);
@@ -342,13 +364,6 @@ const Map = () => {
       // Unsubscribe from all user settings subscriptions
       unsubscribers.forEach((unsub) => unsub());
     };
-
-    return () => {
-      if (locationSubscriber) {
-        locationSubscriber.remove();
-      }
-      unsubscribeFriends();
-    };
   }, []);
 
   if (errorMsg) {
@@ -399,7 +414,7 @@ const Map = () => {
         logoEnabled={false}
         attributionEnabled={false}
         // Dismiss callout on map press
-        onPress={() => setSelectedAnnotation(null)}
+        onPress={handleMapPress}
         deselectAnnotationOnTap={true}
       >
         <Mapbox.Camera
@@ -429,7 +444,7 @@ const Map = () => {
               allowOverlap={true}
             >
               <TouchableOpacity
-                onPress={() => setSelectedAnnotation(post.id)}
+                onPress={() => handlePostPress(post)}
                 onLongPress={() => {
                   // can only delete own posts
                   if (post.isOwnPost) {
@@ -478,11 +493,7 @@ const Map = () => {
                 <Image
                   source={
                     post.imageUrl
-                      ? {
-                          uri: post.imageUrl,
-                          cache: "force-cache",
-                          headers: { Pragma: "no-cache" },
-                        }
+                      ? { uri: post.imageUrl }
                       : require("../assets/default-avatar.png")
                   }
                   style={{
@@ -496,7 +507,7 @@ const Map = () => {
                 />
               </TouchableOpacity>
 
-              {selectedAnnotation === post.id && (
+              {Platform.OS === "ios" && selectedAnnotation === post.id && (
                 <View
                   style={{
                     position: "absolute",
@@ -552,7 +563,7 @@ const Map = () => {
                 allowOverlap={true}
               >
                 <TouchableOpacity
-                  onPress={() => setSelectedAnnotation(friend.uid)}
+                  onPress={() => handleFriendPress(friend)}
                   style={{
                     width: 48,
                     height: 48,
@@ -585,7 +596,7 @@ const Map = () => {
                   />
                 </TouchableOpacity>
 
-                {selectedAnnotation === friend.uid && (
+                {Platform.OS === "ios" && selectedAnnotation === friend.uid && (
                   <View
                     style={{
                       position: "absolute",
@@ -625,6 +636,13 @@ const Map = () => {
             ) : null
           )}
       </MapView>
+
+      <MapInfoWindow
+        item={selectedItem}
+        type={selectedType}
+        visible={!!selectedAnnotation}
+      />
+
       {/* Control Buttons */}
       <View className="absolute top-20 right-4 flex-row space-x-2">
         {/* View Toggle Button */}
