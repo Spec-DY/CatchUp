@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
+import {
+  View,
+  Text,
+  Platform,
+  Alert,
+  ActivityIndicator,
+  SafeAreaView,
+} from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import { Image } from "react-native";
 import { postService } from "../firebase/services/postService";
 import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Device from "expo-device";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -35,33 +44,93 @@ const Map = () => {
   // state for view mode
   const [viewMode, setViewMode] = useState("friends"); // 'posts', or 'friends'
 
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+
+  const isSimulator = () => {
+    console.log("Device.isDevice:", Device.isDevice);
+    return !Device.isDevice;
+  };
+
   // Add camera button handler
   const handleNewPost = async () => {
     try {
-      // Request camera permission
+      setIsCreatingPost(true);
+
+      if (isSimulator()) {
+        Alert.alert(
+          "Simulator Detected",
+          "Camera is not available on iOS Simulator. Please use a real device."
+        );
+        return;
+      }
+
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission needed", "Camera permission is required");
         return;
       }
 
-      // Take photo
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 0.7,
+        base64: false,
+        exif: false,
+        allowsEditing: true,
+        presentationStyle: "fullScreen",
       });
 
-      if (!result.canceled) {
-        // Create post with current location
-        await postService.createPost(user.uid, {
-          imageUri: result.assets[0].uri,
-          location: location,
-          caption: "", // Could add caption input
+      console.log("Camera result:", result);
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+
+        if (!asset.uri) {
+          throw new Error("No image URI available");
+        }
+
+        const uriLower = asset.uri.toLowerCase();
+        if (
+          !uriLower.endsWith(".jpg") &&
+          !uriLower.endsWith(".jpeg") &&
+          !uriLower.endsWith(".png")
+        ) {
+          throw new Error("Invalid image format");
+        }
+
+        if (!location) {
+          throw new Error("Location not available");
+        }
+
+        const locationData = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          timestamp: new Date().toISOString(),
+        };
+
+        console.log("Submitting post with data:", {
+          imageUri: asset.uri,
+          location: locationData,
         });
+
+        await postService.createPost(user.uid, {
+          imageUri: asset.uri,
+          location: locationData,
+          caption: "",
+          createdAt: new Date().toISOString(),
+        });
+
+        Alert.alert("Success", "Post created successfully!");
+      } else {
+        console.log("Camera cancelled or no image selected");
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      Alert.alert("Error", "Failed to create post");
+      Alert.alert(
+        "Error",
+        `Failed to create post: ${error.message || "Unknown error"}`
+      );
+    } finally {
+      setIsCreatingPost(false);
     }
   };
 
@@ -72,7 +141,6 @@ const Map = () => {
         `https://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&limit=1&appid=${OPENWEATHER_API_KEY}`
       );
       const data = await response.json();
-      console.log("Location data:", data);
       setCityName(data[0]?.name || "Unknown Location");
 
       // Get weather data
@@ -80,7 +148,6 @@ const Map = () => {
         `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${OPENWEATHER_API_KEY}`
       );
       const weatherData = await weatherResponse.json();
-      console.log("Weather data:", weatherData);
       setWeather(weatherData);
     } catch (error) {
       console.error("Error fetching location info:", error);
@@ -171,39 +238,110 @@ const Map = () => {
       where("status", "==", "accepted")
     );
 
+    // create an array to store all the unsubscribe functions
+    const unsubscribers = [];
+
     const unsubscribeFriends = onSnapshot(friendsQuery, async (snapshot) => {
       const friendsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      // Get friend profiles and locations
-      const friendProfiles = await Promise.all(
-        friendsData.map(async (friend) => {
-          const friendId = friend.users.find((id) => id !== user.uid);
-          const profile = await userService.getUserProfile(friendId);
+      try {
+        // Clear all previous user settings subscriptions
+        unsubscribers.forEach((unsub) => unsub());
+        unsubscribers.length = 0;
 
-          let avatarUrl = null;
-          if (profile.avatarUrl) {
-            try {
-              avatarUrl = await userService.getImageUrl(profile.avatarUrl);
-            } catch (error) {
-              console.log("Error loading avatar:", error);
-            }
-          }
-          return {
-            ...friend,
-            ...profile,
-            profile: {
+        // Fetch profiles for each friend
+        const friendProfiles = await Promise.all(
+          friendsData.map(async (friend) => {
+            const friendId = friend.users.find((id) => id !== user.uid);
+
+            console.log("Processing friend ID:", friendId);
+
+            const profile = await userService.getUserProfile(friendId);
+
+            console.log(
+              "Retrieved profile:",
+              profile ? "exists" : "null",
+              "for ID:",
+              friendId
+            );
+
+            // Subscribe to user settings
+            const settingsUnsub = onSnapshot(
+              doc(FIREBASE_DB, "users", friendId),
+              async (userDoc) => {
+                const updatedSettings = userDoc.data()?.settings;
+                if (updatedSettings) {
+                  // Update the friend's settings in the friends list
+                  setFriends((currentFriends) =>
+                    currentFriends.map((f) =>
+                      f.uid === friendId
+                        ? { ...f, settings: updatedSettings }
+                        : f
+                    )
+                  );
+                }
+              }
+            );
+
+            console.log("Profile data:", {
+              id: friendId,
               username: profile.username,
-              avatarUrl: avatarUrl,
-            },
-          };
-        })
-      );
+              hasAvatar: !!profile.avatarUrl,
+            });
 
-      setFriends(friendProfiles);
+            unsubscribers.push(settingsUnsub);
+
+            let avatarUrl = null;
+            if (profile.avatarUrl) {
+              try {
+                avatarUrl = await userService.getImageUrl(profile.avatarUrl);
+              } catch (error) {
+                console.log("Error loading avatar:", error);
+              }
+            } else {
+              console.log("No avatar URL found for", profile.username);
+              profile.avatarUrl = require("../assets/default-avatar.png");
+              avatarUrl = require("../assets/default-avatar.png");
+              console.log("Default avatar URL:", profile.avatarUrl);
+              if (profile.avatarUrl) {
+                console.log("Default avatar URL found for", profile.username);
+              }
+            }
+
+            return {
+              ...friend,
+              ...profile,
+              profile: {
+                username: profile.username,
+                avatarUrl: avatarUrl,
+              },
+            };
+          })
+        );
+
+        //如果用户被删除了，这里会报错type error avatarURL为null，实则是找不到整个friendprofile，所以加上一个判断
+        if (friendProfiles.length === 0) {
+          setErrorMsg("No friends found");
+        }
+
+        setFriends(friendProfiles);
+      } catch (error) {
+        console.error("Error fetching friend profiles:", error);
+      }
     });
+
+    // Cleanup
+    return () => {
+      if (locationSubscriber) {
+        locationSubscriber.remove();
+      }
+      unsubscribeFriends();
+      // Unsubscribe from all user settings subscriptions
+      unsubscribers.forEach((unsub) => unsub());
+    };
 
     return () => {
       if (locationSubscriber) {
@@ -215,24 +353,31 @@ const Map = () => {
 
   if (errorMsg) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <SafeAreaContainer
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <Text>{errorMsg}</Text>
-      </View>
+      </SafeAreaContainer>
     );
   }
 
   if (!location) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <SafeAreaContainer
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <Text>Fetching location...</Text>
-      </View>
+      </SafeAreaContainer>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaContainer>
       {/* Weather and City Info Overlay */}
-      <View className="absolute top-12 left-4 z-10 bg-black/50 rounded-lg p-3">
+      <View
+        className="absolute left-4 z-10 bg-black/50 rounded-lg p-2"
+        style={{ top: 90 }}
+      >
         <Text className="text-white text-lg font-semibold">
           {cityName || "Loading location..."}
         </Text>
@@ -263,7 +408,9 @@ const Map = () => {
             // If friends exist, center on first friend, otherwise center on user
             friends[0]?.location
               ? [friends[0].location.longitude, friends[0].location.latitude]
-              : [location.longitude, location.latitude]
+              : location
+              ? [location.longitude, location.latitude]
+              : [0, 0]
           }
           followUserLocation={false}
           followZoomLevel={14}
@@ -283,6 +430,42 @@ const Map = () => {
             >
               <TouchableOpacity
                 onPress={() => setSelectedAnnotation(post.id)}
+                onLongPress={() => {
+                  // can only delete own posts
+                  if (post.isOwnPost) {
+                    Alert.alert(
+                      "Delete Post",
+                      "Are you sure you want to delete this post?",
+                      [
+                        {
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: async () => {
+                            try {
+                              await postService.deletePost(
+                                post.id,
+                                post.imageUrl
+                              );
+                              setSelectedAnnotation(null);
+                              Alert.alert(
+                                "Success",
+                                "Post deleted successfully"
+                              );
+                            } catch (error) {
+                              console.error("Error deleting post:", error);
+                              Alert.alert("Error", "Failed to delete post");
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }
+                }}
+                delayLongPress={2000} // long press of 2 seconds
                 style={{
                   width: 64,
                   height: 64,
@@ -293,13 +476,15 @@ const Map = () => {
                 }}
               >
                 <Image
-                  source={{
-                    uri: post.imageUrl,
-                    cache: "force-cache",
-                    headers: {
-                      Pragma: "no-cache",
-                    },
-                  }}
+                  source={
+                    post.imageUrl
+                      ? {
+                          uri: post.imageUrl,
+                          cache: "force-cache",
+                          headers: { Pragma: "no-cache" },
+                        }
+                      : require("../assets/default-avatar.png")
+                  }
                   style={{
                     width: "100%",
                     height: "100%",
@@ -379,12 +564,10 @@ const Map = () => {
                   }}
                 >
                   <Image
+                    // 这里改为检查string，否则null avatarurl会报错
                     source={
-                      friend.profile?.avatarUrl
-                        ? {
-                            uri: friend.profile.avatarUrl,
-                            cache: "force-cache",
-                          }
+                      typeof friend.profile?.avatarUrl === "string"
+                        ? { uri: friend.profile.avatarUrl }
                         : require("../assets/default-avatar.png")
                     }
                     defaultSource={require("../assets/default-avatar.png")}
@@ -443,7 +626,7 @@ const Map = () => {
           )}
       </MapView>
       {/* Control Buttons */}
-      <View className="absolute top-12 right-4 flex-row space-x-2">
+      <View className="absolute top-20 right-4 flex-row space-x-2">
         {/* View Toggle Button */}
         <TouchableOpacity
           onPress={() =>
@@ -467,7 +650,13 @@ const Map = () => {
           </TouchableOpacity>
         )}
       </View>
-    </View>
+
+      {isCreatingPost && (
+        <View className="absolute inset-0 bg-black/50 items-center justify-center">
+          <ActivityIndicator size="large" color="#e879f9" />
+        </View>
+      )}
+    </SafeAreaContainer>
   );
 };
 

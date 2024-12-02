@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "locationSharing",
-    "slug": "locationSharing",
+    "name": "CatchUp",
+    "slug": "CatchUp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,7 +17,8 @@
         "UIBackgroundModes": ["location", "fetch", "remote-notification"],
         "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current position on the map.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Keep sharing your location in background"
-      }
+      },
+      "bundleIdentifier": "com.anonymous.CatchUp"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,9 +29,12 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.NOTIFICATIONS"
+        "android.permission.NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
-      "package": "com.anonymous.locationSharing"
+      "package": "com.anonymous.CatchUp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -46,7 +50,7 @@
         "@rnmapbox/maps",
         {
           "RNMapboxMapsImpl": "mapbox",
-          "RNMapboxMapsDownloadToken": "Mapbox Secret API key"
+          "RNMapboxMapsDownloadToken": "${MAPBOX_DOWNLOAD_TOKEN}"
         }
       ],
       [

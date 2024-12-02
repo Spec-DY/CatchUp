@@ -1,6 +1,13 @@
 // Screens/ProfileSetup.js
 import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  SafeAreaView,
+} from "react-native";
 import { Button } from "@rneui/base";
 import { Input } from "@rneui/themed";
 import * as ImagePicker from "expo-image-picker";
@@ -76,7 +83,7 @@ const ProfileSetup = () => {
   };
 
   return (
-    <View className="flex-1 bg-black p-4">
+    <SafeAreaView className="flex-1 bg-black p-4">
       <View className="items-center mb-8">
         <Text className="text-2xl font-bold mb-2 text-white">
           Set Up Your Profile
@@ -156,7 +163,7 @@ const ProfileSetup = () => {
         loading={loading}
         disabled={!username || !gender}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

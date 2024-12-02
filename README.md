@@ -10,11 +10,13 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - User profile management (ProfileSetup + Profile Screen)
 - Firebase integration (Firestore -> Storage)
 - State management implementation
+- Me Screen (User Profile Screen)
 
 **`Dingyang Jin`**
 - Mapbox Migration
 - Friends screen (add friend system)
 - Map Screen (add friend layer and post layer)
+- User Experience
 
 ## Current Features Implementation
 ### Screenshots
@@ -60,10 +62,26 @@ CatchUp is a social map-app designed for seamless connection with friends, where
  - Subscribe to posts collection for real-time updates
  - Display posts with thumbnails on the map
  - Show callouts with post details on marker click
+ - Delete post by self using long press
 ##### ✅ User interactions
  - Toggle between friends and posts view
  - Add new posts with camera integration
  - Handle location permissions and errors
+
+### Profile Config 
+
+#### `Me.js`
+##### ✅ Location sharing privacy
+ - Toggle on/off location sharing setting so friends can see or not
+ - Toggle on/off notifications
+
+#### `EditProfile.js`
+##### ✅ User information update
+ - Update avatar/name
+
+#### `NotificationScheduler.js`
+##### ✅ Local reminder
+
 
 ### Database Design
 
@@ -135,18 +153,18 @@ createdAt: timestamp,
 
 ## Branch Strategy
 
-- `main`: N/A
+- `main`: Mapbox merged
+- `Notification`: User profile management & bug fix
 - `Mapbox`: Fully functional map and friend system
-- `dev`: Our last build based on Google Maps
-
+- `dev`:  Legacy build based on Google Maps
 ## Next Steps
 
 - [x] Implement friend request system
 - [x] Add real-time location sharing
 - [x] Create friend list management
-- [ ] Add notification system
-- [ ] Implement location privacy controls
-- [ ] User friendly UI improvement
+- [x] Add notification system
+- [x] Implement location privacy controls
+- [x] User friendly UI improvement
 
 ## Note
 ### After Switching to Unmanaged Expo
@@ -155,22 +173,7 @@ createdAt: timestamp,
 
 ---
 
-### Step 1: Add the Mapbox API Key to `app.json` Plugins
-Update the `app.json` file by replacing `Mapbox Secret API key` with the actual key started with `sk.`:
-```json
-{
-  "plugins": [
-    [
-      "@rnmapbox/maps",
-      {
-        "RNMapboxMapsImpl": "mapbox",
-        "RNMapboxMapsDownloadToken": "Mapbox Secret API key"
-      }
-    ]
-  ]
-}
-```
-### Step 2: Update the .env File
+### Step 1: Update the .env File
 
 Add the required keys for Mapbox (start with `pk.`) and OpenWeather in the .env file, in addition to the Firebase API keys:
 ```bash

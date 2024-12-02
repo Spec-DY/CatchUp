@@ -16,6 +16,7 @@ import { FIREBASE_DB } from "../firebase/firebaseConfig";
 import defaultAvatar from "../assets/default-avatar.png";
 import { MaterialIcons } from "@expo/vector-icons";
 import debounce from "lodash/debounce";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const Friends = () => {
   const { user } = useUser();
@@ -82,6 +83,8 @@ const Friends = () => {
                   );
                   profile.avatarUrl = null;
                 }
+              } else {
+                console.log("No avatarURl found for friend:", friendId);
               }
 
               return { ...friend, profile };
@@ -94,6 +97,7 @@ const Friends = () => {
             }
           })
         );
+
         setFriends(friendProfiles);
       } catch (error) {
         console.log("Error processing friends data:", error);
@@ -377,8 +381,8 @@ const Friends = () => {
   }
 
   return (
-    <View className="flex-1 bg-black p-4">
-      <View className="mb-4">
+    <SafeAreaContainer>
+      <View className="mb-2 px-6 pt-4">
         <View className="flex-row items-center">
           <Input
             placeholder="Search by email"
@@ -386,7 +390,12 @@ const Friends = () => {
             onChangeText={handleSearchChange}
             inputStyle={{ color: "white" }}
             placeholderTextColor="gray"
-            containerStyle={{ flex: 1, paddingHorizontal: 0, marginRight: 8 }}
+            containerStyle={{
+              flex: 1,
+              paddingHorizontal: 0,
+              marginRight: 8,
+              marginTop: 25,
+            }}
             autoCapitalize="none"
             keyboardType="email-address"
           />
@@ -509,16 +518,19 @@ const Friends = () => {
         </View>
       )}
 
-      <Text className="text-white font-bold mb-2">Friends</Text>
-      <FlatList
-        data={friends}
-        renderItem={({ item }) => <FriendItem item={item} />}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <Text className="text-gray-400 text-center">No friends yet</Text>
-        }
-      />
-    </View>
+      <View className="flex-1 px-6">
+        <Text className="text-white font-bold mb-2">Friends</Text>
+        <FlatList
+          data={friends}
+          renderItem={({ item }) => <FriendItem item={item} />}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <Text className="text-gray-400 text-center">No friends yet</Text>
+          }
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
+    </SafeAreaContainer>
   );
 };
 

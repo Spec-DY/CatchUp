@@ -1,25 +1,53 @@
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  Switch,
+  ScrollView,
+} from "react-native";
 import { useUser } from "../Context/UserContext";
-import { Button } from "@rneui/base";
+import { Button, color } from "@rneui/base";
 import GenderOption from "../Components/GenderOption";
 import { useNavigation } from "@react-navigation/native";
 import { userService } from "../firebase/services/userService";
 import EditProfile from "./EditProfile";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
-const SettingItem = ({ title, value, subtitle, onPress }) => (
-  <TouchableOpacity
-    className="mb-4 bg-gray-800 p-4 rounded-lg"
-    onPress={onPress}
-  >
-    <Text className="text-white font-medium mb-1">{title}</Text>
-    {value && <Text className="text-white text-lg mb-1">{value}</Text>}
-    {subtitle && <Text className="text-gray-400 text-sm">{subtitle}</Text>}
-  </TouchableOpacity>
-);
+const SettingItem = ({ title, subtitle, onPress, toggleValue, onToggle }) => {
+  return (
+    <TouchableOpacity
+      className={`mb-4 bg-gray-800 p-4 rounded-lg ${
+        onPress ? "active:opacity-80" : ""
+      }`}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <View className="flex-row justify-between items-center">
+        <View>
+          <Text className="text-white font-medium mb-1">{title}</Text>
+          {subtitle && (
+            <Text className="text-gray-400 text-sm">{subtitle}</Text>
+          )}
+        </View>
+        {typeof toggleValue !== "undefined" && (
+          <Switch
+            value={toggleValue}
+            onValueChange={onToggle}
+            trackColor={{ false: "#767577", true: "#45cb59" }}
+            thumbColor={toggleValue ? "#ffffff" : "#f4f3f4"}
+            style={{ marginLeft: 10 }}
+          />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const Me = () => {
-  const { user, signOut } = useUser();
+  const { user, setUser, signOut } = useUser();
   const navigation = useNavigation();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [isEditModalVisible, setEditModalVisible] = useState(false);
@@ -59,12 +87,42 @@ const Me = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const handleLocationSharing = () => {
-    Alert.alert("Coming soon", "Location sharing toggle");
+  const toggleLocationSharing = async (value) => {
+    try {
+      const updatedSettings = {
+        ...user.settings,
+        locationSharing: value,
+      };
+      await userService.updateUserSettings(user.uid, updatedSettings);
+      setUser((prev) => ({
+        ...prev,
+        settings: updatedSettings,
+      }));
+    } catch (error) {
+      console.error("Failed to update location sharing:", error);
+      Alert.alert("Error", "Failed to update location sharing");
+    }
+  };
+
+  const toggleNotifications = async (value) => {
+    try {
+      const updatedSettings = {
+        ...user.settings,
+        notifications: value,
+      };
+      await userService.updateUserSettings(user.uid, updatedSettings);
+      setUser((prev) => ({
+        ...prev,
+        settings: updatedSettings,
+      }));
+    } catch (error) {
+      console.error("Failed to update notifications:", error);
+      Alert.alert("Error", "Failed to update notifications");
+    }
   };
 
   return (
-    <View className="flex-1 bg-black">
+    <SafeAreaContainer>
       <EditProfile
         isVisible={isEditModalVisible}
         onClose={() => setEditModalVisible(false)}
@@ -73,7 +131,6 @@ const Me = () => {
 
       {/* Profile Header */}
       <View className="items-center p-6 border-b border-gray-800">
-        {/* Avatar */}
         <TouchableOpacity className="mb-4" onPress={() => {}} disabled={true}>
           <Image
             source={
@@ -84,14 +141,10 @@ const Me = () => {
             className="w-24 h-24 rounded-full"
           />
         </TouchableOpacity>
-
-        {/* User Info */}
         <Text className="text-2xl font-bold text-white mb-2">
           {user?.username || "User"}
         </Text>
         <Text className="text-gray-400 mb-4">{user?.email}</Text>
-
-        {/* Gender */}
         <GenderOption
           type={user?.gender}
           icon={user?.gender === "male" ? "👨🏻" : "👩🏻"}
@@ -102,36 +155,46 @@ const Me = () => {
       </View>
 
       {/* Settings List */}
-      <View className="p-6">
-        {/* Edit Profile */}
-        <SettingItem
-          title="Edit Profile"
-          subtitle="Change your username or photo"
-          onPress={handleEditProfile}
-        />
+      <ScrollView className="flex-1">
+        <View className="p-6">
+          <SettingItem
+            title="Edit Profile"
+            subtitle="Change your username or photo"
+            onPress={handleEditProfile}
+          />
 
-        {/* Location Sharing */}
-        <SettingItem
-          title="Location Sharing"
-          subtitle={
-            user?.settings?.locationSharing
-              ? "Your location is visible to friends"
-              : "Your location is hidden"
-          }
-          onPress={handleLocationSharing}
-        />
+          {/* Location Sharing */}
+          <SettingItem
+            title="Location Sharing"
+            subtitle={
+              user?.settings?.locationSharing
+                ? "Your location is visible to friends"
+                : "Your location is hidden"
+            }
+            toggleValue={user?.settings?.locationSharing}
+            onToggle={toggleLocationSharing}
+          />
 
-        {/* Notifications */}
-        <SettingItem
-          title="Notifications"
-          subtitle={
-            user?.settings?.notifications
-              ? "Notifications are enabled"
-              : "Notifications are disabled"
-          }
-          onPress={() => Alert.alert("Coming soon", "Notification settings")}
-        />
-      </View>
+          {/* Notifications */}
+          <SettingItem
+            title="Notifications"
+            subtitle={
+              user?.settings?.notifications
+                ? "Notifications are enabled"
+                : "Notifications are disabled"
+            }
+            toggleValue={user?.settings?.notifications}
+            onToggle={toggleNotifications}
+          />
+
+          {/* Notification Scheduler */}
+          <SettingItem
+            title="Set Reminder Notification"
+            subtitle="Schedule a daily reminder to check your location updates"
+            onPress={() => navigation.navigate("NotificationScheduler")}
+          />
+        </View>
+      </ScrollView>
 
       {/* Logout Button */}
       <View className="p-6 mt-auto">
@@ -149,10 +212,18 @@ const Me = () => {
             fontWeight: "bold",
             fontSize: 16,
           }}
-          onPress={handleLogout}
+          onPress={() =>
+            Alert.alert("Log Out", "Are you sure you want to log out?", [
+              {
+                text: "No",
+                style: "cancel",
+              },
+              { text: "Yes", style: "destructive", onPress: handleLogout },
+            ])
+          }
         />
       </View>
-    </View>
+    </SafeAreaContainer>
   );
 };
 
