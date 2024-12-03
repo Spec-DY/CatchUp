@@ -1,8 +1,11 @@
 # CatchUp
 
-<img src="/assets/docs/demo.gif" width="200" alt="demo"/>
-
-CatchUp is a social map-app designed for seamless connection with friends, wherever you are.
+<div style="display: flex; align-items: center;">
+  <img src="/assets/docs/demo.gif" width="200" alt="demo" style="margin-right: 20px;" />
+  <p>
+    CatchUp is a social map-app designed for seamless connection with friends, wherever you are.
+  </p>
+</div>
 
 ## Developer
 
