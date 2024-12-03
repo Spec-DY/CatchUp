@@ -1,5 +1,7 @@
 # CatchUp
 
+<img src="/assets/docs/demo.gif" width="200" alt="demo"/>
+
 CatchUp is a social map-app designed for seamless connection with friends, wherever you are.
 
 ## Developer
@@ -18,9 +20,8 @@ CatchUp is a social map-app designed for seamless connection with friends, where
 - Map Screen (add friend layer and post layer)
 - User Experience
 
-## Current Features Implementation
+## Features Implementation
 ### Screenshots
-
 
 
 <div style="display: flex; gap: 10px; margin-bottom: 20px;">
@@ -194,13 +195,35 @@ npx expo prebuild --clean
 - Enable USB debugging on your phone (for Android, enable ADB).
 - Connect your phone to the computer.
 - Run the app on Android or iOS:
+
 ```bash
 npx expo run:android
 ```
+
 **OR**
+
 ```bash
 npx expo run:ios
 ```
-#### Manual Install
+
+#### Android Manual Install
+
 - Alternatively, you can manually install the APK after prebuild:  
-  `android\app\build\outputs\apk\debug\app-debug.apk`.
+`android\app\build\outputs\apk\debug\app-debug.apk`.
+
+#### iOS Manual Install
+
+- Ensure you have registered an [Apple Developer Account](https://developer.apple.com/) and downloaded [Xcode](https://developer.apple.com/xcode/)
+- After prebuild, run the following command in the terminal:
+
+  ```sh
+  open ios/CatchUp.xcworkspace/
+  ```
+
+- Xcode will show up and Connect your iOS device, select your iOS device at the top.
+- Select `CatchUp` project and select `Signing & Capabilities`, under `Team` select your apple developer account.
+  - **Note:** Free Apple Developer Account does not support `Background Modes` and `Push Notification`, simple remove them from signing.
+
+![xcode](assets/docs/xcode.png)
+
+- Build and run the project in xcode by pressing `CMD` + `R`
