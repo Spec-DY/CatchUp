@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -28,7 +28,7 @@ const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 // Initialize Mapbox with access token
 Mapbox.setAccessToken(mapboxToken);
 
-const Map = () => {
+const Map = ({ route }) => {
   const { user } = useUser();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -72,6 +72,18 @@ const Map = () => {
     console.log("Device.isDevice:", Device.isDevice);
     return !Device.isDevice;
   };
+
+  /////////////////////////////
+  ///Friend Navigation Logic///
+  /// route.params receive the friend location from the navigation prop in Friend.js
+
+  // change viewmode to friends when friend location is passed
+  useEffect(() => {
+    if (route.params?.friendLocation) {
+      setViewMode("friends");
+    }
+  }, [route.params?.friendLocation]);
+  /////////////////////////////
 
   // Add camera button handler
   const handleNewPost = async () => {
@@ -416,12 +428,20 @@ const Map = () => {
         <Mapbox.Camera
           zoomLevel={14}
           centerCoordinate={
-            // If friends exist, center on first friend, otherwise center on user
-            friends[0]?.location
+            // 首先检查是否有通过导航传入的朋友位置
+            route.params?.friendLocation
+              ? [
+                  route.params.friendLocation.longitude,
+                  route.params.friendLocation.latitude,
+                ]
+              : // 如果没有，检查好友列表中第一个好友的位置
+              friends[0]?.location
               ? [friends[0].location.longitude, friends[0].location.latitude]
-              : location
+              : // 如果没有好友位置，使用用户位置
+              location
               ? [location.longitude, location.latitude]
-              : [0, 0]
+              : // 最后的默认值
+                [0, 0]
           }
           followUserLocation={false}
           followZoomLevel={14}
