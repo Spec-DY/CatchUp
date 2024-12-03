@@ -2,7 +2,7 @@
   "expo": {
     "name": "CatchUp",
     "slug": "CatchUp",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
         "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current position on the map.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Keep sharing your location in background"
       },
-      "bundleIdentifier": "com.anonymous.CatchUp"
+      "bundleIdentifier": "com.catchup.CatchUp"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
-      "package": "com.anonymous.CatchUp"
+      "package": "com.catchup.CatchUp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -61,6 +61,11 @@
           "isAndroidBackgroundLocationEnabled": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3e526053-042d-44d3-a0f2-7f78d3b1dce5"
+      }
+    }
   }
 }
