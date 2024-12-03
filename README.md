@@ -1,14 +1,21 @@
 <p>
-
   <h1 style="display: inline-block; margin-left: 10px;"><img src="assets/adaptive-icon.png" alt="CatchUp Logo" width="100">CatchUp</h1>
 </p>
 
-<div style="display: flex; align-items: center;">
-  <img src="/assets/docs/demo.gif" width="200" alt="demo" style="margin-right: 20px;" />
-  <p>
-    CatchUp is a social map-app designed for seamless connection with friends, wherever you are.
-  </p>
-</div>
+<table>
+  <tr>
+    <td>
+      <img src="/assets/docs/demo.gif" width="200" alt="CatchUp Gif" />
+    </td>
+    <td>
+      <a href="https://youtu.be/3FfoRMeRzbY" title="CatchUp">
+        <img src="/assets/docs/yt-thumbnail.png" alt="CatchUp Video" width="600" />
+      </a>
+    </td>
+  </tr>
+</table>
+
+CatchUp is a social map-app designed for seamless connection with friends, wherever you are.
 
 ## Developer
 
