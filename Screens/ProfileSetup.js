@@ -15,6 +15,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
 import GenderOption from "../Components/GenderOption";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const ProfileSetup = () => {
   const [username, setUsername] = useState("");
@@ -83,14 +84,16 @@ const ProfileSetup = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black p-4">
-      <View className="items-center mb-8">
+    <SafeAreaContainer>
+      <View className="items-center mb-8 mt-14">
         <Text className="text-2xl font-bold mb-2 text-white">
           Set Up Your Profile
         </Text>
-        <Text className="text-gray-400">
-          Please choose a username, profile photo and gender
-        </Text>
+        <View className="rounded-full px-5 py-2">
+          <Text className="text-gray-400">
+            Please choose a username, profile photo and gender
+          </Text>
+        </View>
       </View>
 
       <TouchableOpacity onPress={pickImage} className="items-center mb-6">
@@ -163,7 +166,7 @@ const ProfileSetup = () => {
         loading={loading}
         disabled={!username || !gender}
       />
-    </SafeAreaView>
+    </SafeAreaContainer>
   );
 };
 

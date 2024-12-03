@@ -18,7 +18,7 @@
         "NSLocationWhenInUseUsageDescription": "This app uses your location to show your current position on the map.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Keep sharing your location in background"
       },
-      "bundleIdentifier": "com.catchup.CatchUp"
+      "bundleIdentifier": "com.dev.CatchUp"
     },
     "android": {
       "adaptiveIcon": {

@@ -28,6 +28,11 @@ const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 // Initialize Mapbox with access token
 Mapbox.setAccessToken(mapboxToken);
 
+//////// Interval for map updates///////////
+const TIME_INTERVAL = 3600000; // 60 minutes = minute * 60000
+const DISTANCE_INTERVAL = 20; // 20 meters
+////////////////////////////////////////////
+
 const Map = ({ route }) => {
   const { user } = useUser();
   const [location, setLocation] = useState(null);
@@ -247,8 +252,8 @@ const Map = ({ route }) => {
       locationSubscriber = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 3000000,
-          distanceInterval: 20,
+          timeInterval: TIME_INTERVAL,
+          distanceInterval: DISTANCE_INTERVAL,
         },
         async (newLocation) => {
           const loc = {
@@ -403,7 +408,7 @@ const Map = ({ route }) => {
       {/* Weather and City Info Overlay */}
       <View
         className="absolute left-4 z-10 bg-black/40 rounded-lg p-6 text-white"
-        style={{ top: 50 }}
+        style={{ top: 60 }}
       >
         <WeatherOverlay
           cityName={cityName}

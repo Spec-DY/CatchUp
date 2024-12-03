@@ -17,6 +17,7 @@ import { useUser } from "../Context/UserContext";
 import { Button } from "@rneui/base";
 import { Input } from "@rneui/themed";
 import { userService } from "../firebase/services/userService";
+import SafeAreaContainer from "../Components/SafeAreaContainer";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -97,7 +98,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-center bg-black p-4">
+    <SafeAreaContainer className="justify-center p-4">
       <View className="mb-12">
         <Text className="text-3xl font-bold mb-2 text-white text-center">
           Welcome Back
@@ -171,7 +172,6 @@ const LoginScreen = () => {
           loading={loading}
           disabled={loading}
         />
-
         <Button
           title="SIGN UP"
           buttonStyle={{
@@ -183,6 +183,7 @@ const LoginScreen = () => {
           }}
           containerStyle={{
             width: "100%",
+            marginTop: 18,
           }}
           titleStyle={{
             fontWeight: "bold",
@@ -200,7 +201,7 @@ const LoginScreen = () => {
         <Text className="text-blue-400">Terms of Service</Text> and{" "}
         <Text className="text-blue-400">Privacy Policy</Text>
       </Text>
-    </SafeAreaView>
+    </SafeAreaContainer>
   );
 };
 
