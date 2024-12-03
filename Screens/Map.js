@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -376,7 +377,7 @@ const Map = ({ route }) => {
 
         //如果用户被删除了，这里会报错type error avatarURL为null，实则是找不到整个friendprofile，所以加上一个判断
         if (friendProfiles.length === 0) {
-          setErrorMsg("No friends found");
+          setFriends([]);
         }
 
         setFriends(friendProfiles);
@@ -398,10 +399,12 @@ const Map = ({ route }) => {
 
   if (errorMsg) {
     return (
-      <SafeAreaContainer
-        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-      >
-        <Text>{errorMsg}</Text>
+      <SafeAreaContainer style={{ flex: 1 }}>
+        <SafeAreaView className="flex">
+          <View className="bg-black/60 px-6 py-4 rounded-lg backdrop-blur-sm">
+            <Text className="text-white font-bold text-center">{errorMsg}</Text>
+          </View>
+        </SafeAreaView>
       </SafeAreaContainer>
     );
   }
@@ -455,7 +458,7 @@ const Map = ({ route }) => {
               location
               ? [location.longitude, location.latitude]
               : // 最后的默认值
-                [0, 0]
+                [-123.1207, 49.2827]
           }
           followUserLocation={false}
           followZoomLevel={14}
