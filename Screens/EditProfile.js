@@ -97,7 +97,7 @@ const EditProfile = ({ isVisible, onClose, onUpdate }) => {
       transparent={false}
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-black">
+      <SafeAreaView>
         {/* Profile Picture Section */}
         <View className="items-center mt-8 mb-8">
           <TouchableOpacity onPress={pickImage}>

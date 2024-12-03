@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   Platform,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import Mapbox, { MapView } from "@rnmapbox/maps";
 import * as Location from "expo-location";
@@ -13,14 +14,13 @@ import { useUser } from "../Context/UserContext";
 import { userService } from "../firebase/services/userService";
 import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
 import { FIREBASE_DB } from "../firebase/firebaseConfig";
-import { Image } from "react-native";
 import { postService } from "../firebase/services/postService";
-import { TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Device from "expo-device";
 import SafeAreaContainer from "../Components/SafeAreaContainer";
 import MapInfoWindow from "../Components/MapInfoWindow";
+import WeatherOverlay from "../Components/WeatherOverlay";
 
 const OPENWEATHER_API_KEY = process.env.EXPO_PUBLIC_OPEN_WEATHER_API;
 
@@ -28,7 +28,12 @@ const mapboxToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 // Initialize Mapbox with access token
 Mapbox.setAccessToken(mapboxToken);
 
-const Map = () => {
+//////// Interval for map updates///////////
+const TIME_INTERVAL = 3600000; // 60 minutes = minute * 60000
+const DISTANCE_INTERVAL = 20; // 20 meters
+////////////////////////////////////////////
+
+const Map = ({ route }) => {
   const { user } = useUser();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -72,6 +77,31 @@ const Map = () => {
     console.log("Device.isDevice:", Device.isDevice);
     return !Device.isDevice;
   };
+
+  /////////////////////////////
+  ///Friend Navigation Logic///
+  /// route.params receive the friend location from the navigation prop in Friend.js
+
+  // change viewmode to friends when friend location is passed
+  const cameraRef = useRef(null);
+
+  useEffect(() => {
+    if (route.params?.friendLocation) {
+      setViewMode("friends");
+
+      const { latitude, longitude } = route.params.friendLocation;
+      if (latitude && longitude) {
+        setTimeout(() => {
+          cameraRef.current?.setCamera({
+            centerCoordinate: [longitude, latitude],
+            zoomLevel: 14,
+            animationDuration: 1000,
+          });
+        }, 10);
+      }
+    }
+  }, [route.params?.friendLocation]);
+  /////////////////////////////
 
   // Add camera button handler
   const handleNewPost = async () => {
@@ -235,8 +265,8 @@ const Map = () => {
       locationSubscriber = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
-          timeInterval: 3000000,
-          distanceInterval: 20,
+          timeInterval: TIME_INTERVAL,
+          distanceInterval: DISTANCE_INTERVAL,
         },
         async (newLocation) => {
           const loc = {
@@ -390,20 +420,15 @@ const Map = () => {
     <SafeAreaContainer>
       {/* Weather and City Info Overlay */}
       <View
-        className="absolute left-4 z-10 bg-black/50 rounded-lg p-2"
-        style={{ top: 90 }}
+        className="absolute left-4 z-10 bg-black/40 rounded-lg p-6 text-white"
+        style={{ top: 60 }}
       >
-        <Text className="text-white text-lg font-semibold">
-          {cityName || "Loading location..."}
-        </Text>
-        {weather?.main ? (
-          <Text className="text-white text-sm">
-            {Math.round(weather.main.temp)}°C{" "}
-            {weather.weather?.[0]?.description}
-          </Text>
-        ) : (
-          <Text className="text-white text-sm">Loading weather...</Text>
-        )}
+        <WeatherOverlay
+          cityName={cityName}
+          temperature={weather?.main ? Math.round(weather.main.temp) : null}
+          weatherDescription={weather?.weather?.[0]?.description}
+          isLoading={!weather?.main}
+        />
       </View>
       <MapView
         style={{ flex: 1 }}
@@ -413,19 +438,24 @@ const Map = () => {
         pitch={60}
         logoEnabled={false}
         attributionEnabled={false}
+        scaleBarEnabled={false}
         // Dismiss callout on map press
         onPress={handleMapPress}
         deselectAnnotationOnTap={true}
       >
         <Mapbox.Camera
+          ref={cameraRef}
           zoomLevel={14}
           centerCoordinate={
-            // If friends exist, center on first friend, otherwise center on user
+            // 首先检查是否有通过导航传入的朋友位置
+            // 如果没有，检查好友列表中第一个好友的位置
             friends[0]?.location
               ? [friends[0].location.longitude, friends[0].location.latitude]
-              : location
+              : // 如果没有好友位置，使用用户位置
+              location
               ? [location.longitude, location.latitude]
-              : [0, 0]
+              : // 最后的默认值
+                [0, 0]
           }
           followUserLocation={false}
           followZoomLevel={14}

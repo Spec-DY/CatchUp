@@ -17,6 +17,7 @@ import defaultAvatar from "../assets/default-avatar.png";
 import { MaterialIcons } from "@expo/vector-icons";
 import debounce from "lodash/debounce";
 import SafeAreaContainer from "../Components/SafeAreaContainer";
+import { useNavigation } from "@react-navigation/native";
 
 const Friends = () => {
   const { user } = useUser();
@@ -311,18 +312,56 @@ const Friends = () => {
   };
 
   const FriendItem = ({ item }) => {
+    const navigation = useNavigation();
+    const { user } = useUser();
     const [hasError, setHasError] = useState(false);
     const friendId = item.users.find((id) => id !== user.uid);
     const avatarUrl =
       !hasError && (avatarCache[friendId] || item.profile?.avatarUrl);
 
+    const handleFriendPress = async () => {
+      try {
+        // Get friend's uid from users array (excluding current user)
+        const friendId = item.users.find((id) => id !== user.uid);
+
+        // Get complete friend profile with all location data
+        const friendProfile = await userService.getUserProfile(friendId);
+        console.log("Friend profile:", friendProfile);
+        console.log("Friend Location:", friendProfile.location);
+
+        if (friendProfile.settings.locationSharing === false) {
+          Alert.alert(
+            "Location Sharing Disabled",
+            "This friend has disabled location sharing"
+          );
+          return;
+        }
+        if (
+          friendProfile?.location?.latitude &&
+          friendProfile?.location?.longitude
+        ) {
+          navigation.navigate("Map", {
+            friendLocation: {
+              latitude: friendProfile.location.latitude,
+              longitude: friendProfile.location.longitude,
+            },
+          });
+        } else {
+          Alert.alert(
+            "Location Unavailable",
+            "This friend's location is not available or they have disabled location sharing"
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching friend profile:", error);
+        Alert.alert("Error", "Could not fetch friend's location");
+      }
+    };
     return (
       <View className="bg-gray-800 rounded-lg mb-2">
         <TouchableOpacity
           className="flex-row items-center justify-between p-4"
-          onPress={() => {
-            /* Navigate to friend profile */
-          }}
+          onPress={handleFriendPress}
         >
           <View className="flex-row items-center">
             <Image
