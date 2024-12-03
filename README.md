@@ -1,4 +1,7 @@
-# CatchUp
+<p>
+
+  <h1 style="display: inline-block; margin-left: 10px;"><img src="assets/adaptive-icon.png" alt="CatchUp Logo" width="100">CatchUp</h1>
+</p>
 
 <div style="display: flex; align-items: center;">
   <img src="/assets/docs/demo.gif" width="200" alt="demo" style="margin-right: 20px;" />
