@@ -212,6 +212,7 @@ npx expo prebuild --clean
 
 ### Step 4: Run the App on Your Device
 
+- Install Android Studio
 - Enable USB debugging on your phone (for Android, enable ADB).
 - Connect your phone to the computer.
 - Run the app on Android or iOS:
